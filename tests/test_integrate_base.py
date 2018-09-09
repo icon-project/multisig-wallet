@@ -25,9 +25,9 @@ from iconservice.base.block import Block
 from iconservice.icon_config import default_icon_config
 from iconservice.icon_constant import ConfigKey
 from iconservice.icon_service_engine import IconServiceEngine
-from integrate_test import create_address, create_tx_hash, create_block_hash
-from integrate_test import root_clear, create_timestamp, get_score_path
-from integrate_test.in_memory_zip import InMemoryZip
+from tests import create_address, create_tx_hash, create_block_hash
+from tests import root_clear, create_timestamp, get_score_path
+from tests.in_memory_zip import InMemoryZip
 
 if TYPE_CHECKING:
     from iconservice.base.address import Address, MalformedAddress
@@ -52,6 +52,8 @@ class TestIntegrateBase(TestCase):
         cls._owner1: 'Address' = create_address()
         cls._owner2: 'Address' = create_address()
         cls._owner3: 'Address' = create_address()
+        cls._owner4: 'Address' = create_address()
+
 
         cls._addr_array = [create_address() for _ in range(10)]
 

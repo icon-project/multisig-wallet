@@ -2,15 +2,16 @@ from iconservice.base.address import Address
 
 
 def params_type_converter(_type: str, _value: str):
-    if _type is "int":
+    param = None
+    if _type == "int":
         param = _convert_value_int(_value)
-    elif _type is "str":
+    elif _type == "str":
         param = _convert_value_string(_value)
-    elif _type is "bool":
+    elif _type == "bool":
         param = _convert_value_bool(_value)
-    elif _type is "Address":
+    elif _type == "Address":
         param = _convert_value_address(_value)
-    elif _type is "bytes":
+    elif _type == "bytes":
         param = _convert_value_bytes(_value)
     return param
 
