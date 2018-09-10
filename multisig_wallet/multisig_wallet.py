@@ -76,7 +76,15 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def on_update(self) -> None:
         super().on_update()
 
-    def not_null(self, address: Address):
+    @staticmethod
+    def _is_json(_json: str):
+        try:
+            json.loads(_json)
+        except ValueError as e:
+            raise IconScoreException(f"json format error: {e}")
+
+    @staticmethod
+    def not_null(address: Address):
         hx_null = Address.from_string("hx0000000000000000000000000000000000000000")
         cx_null = Address.from_string("cx0000000000000000000000000000000000000000")
         if address == hx_null or address == cx_null:
@@ -125,9 +133,14 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             self.DepositToken(_from, _value, _data)
 
     @external
-    def submitTransaction(self, _destination: Address, _method: str, _params: str, _value: int=0, _description: str=""):
+    def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
         # supplement from gnosis
         self.owner_exist(self.msg.sender)
+        # when user input "" or None as a _params' value,
+        # this will be changed to {} so doesn't check json format
+        if _params != "" and _params is not None:
+            self._is_json(_params)
+
         # add transaction
         transaction_id = self._add_transaction(_destination, _method, _params, _value, _description)
         # confirm_transaction
@@ -161,8 +174,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # as locals function snapshot current local variables,
         # this code must be positioned prior to define other local variables
         tx_info = locals()
-        tx_info['_destination'] = str(tx_info['_destination'])
-        del tx_info['self']
+        tx_info["_destination"] = str(tx_info["_destination"])
+        if tx_info["_method"] == "":
+            tx_info["_method"] = None
+        del tx_info["self"]
 
         transaction_id = self._transaction_count
 
@@ -194,20 +209,20 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # convert Address from string to Address type
         tx_info_dict['_destination'] = Address.from_string(tx_info_dict['_destination'])
 
-        if tx_info_dict['_method'] == "icx_send":
-            execute_result = self.icx.send(tx_info_dict['_destination'], tx_info_dict['_value'])
-        else:
-            params = json.loads(tx_info_dict['_params'])
+        if tx_info_dict['_destination'].is_contract:
             method_params = {}
-            for param in params:
-                method_params[param['_name']] = params_type_converter(param['_type'], param['_value'])
+            if tx_info_dict['_params'] != "" and tx_info_dict['_params'] is not None:
+                params = json.loads(tx_info_dict['_params'])
+                for param in params:
+                    method_params[param['_name']] = params_type_converter(param['_type'], param['_value'])
 
             execute_result = self.\
                 call(addr_to=tx_info_dict['_destination'],
                      func_name=tx_info_dict['_method'],
                      kw_dict=method_params,
                      amount=tx_info_dict['_value'])
-
+        else:
+            execute_result = self.icx.send(tx_info_dict['_destination'], tx_info_dict['_value'])
         return execute_result
 
     def _is_confirmed(self, transaction_id) -> bool:
