@@ -33,6 +33,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         pass
 
     @eventlog(indexed=1)
+    def DepositToken(self, sender: Address, value: int, data: bytes):
+        pass
+
+    @eventlog(indexed=1)
     def OwnerAddition(self, owner: Address):
         pass
 
@@ -114,6 +118,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if self.msg.value > 0:
             # event log
             self.Deposit(self.msg.sender, self.msg.value)
+
+    @external
+    def tokenFallback(self, _from: Address, _value: int, _data: bytes):
+        if _value > 0:
+            self.DepositToken(_from, _value, _data)
 
     @external
     def submitTransaction(self, _destination: Address, _method: str, _params: str, _value: int=0, _description: str=""):
