@@ -103,9 +103,9 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
 
         ## owner1을 이용하여 submitTransaction을 진행(add owner), 실제 add owner가 처리되었는 지 체크
         add_owner_params = [
-            {'name': '_owner',
-             'type': 'Address',
-             'value': str(self._owner4)}
+            {'_name': '_owner',
+             '_type': 'Address',
+             '_value': str(self._owner4)}
         ]
         submit_tx_params = {'_destination':str(multisig_score_addr),
                             '_method':'_add_owner',
