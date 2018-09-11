@@ -1,5 +1,6 @@
 from iconservice import *
 
+
 def params_type_converter(_type: str, _value: str):
     param = None
     if _type == "int":
@@ -14,7 +15,7 @@ def params_type_converter(_type: str, _value: str):
         param = _convert_value_bytes(_value)
     else:
         raise IconScoreException\
-            (f"{_type} is not supported type(only int, str, bool, Address, bytes are supporteds)")
+            (f"{_type} is not supported type(only int, str, bool, Address, bytes are supported)")
     return param
 
 

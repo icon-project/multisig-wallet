@@ -76,50 +76,48 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def on_update(self) -> None:
         super().on_update()
 
-    @staticmethod
-    def _is_json(_json: str):
+    def _is_json(self, _json: str):
         try:
             json.loads(_json)
         except ValueError as e:
-            raise IconScoreException(f"json format error: {e}")
+            self.revert(f"json format error: {e}")
 
-    @staticmethod
-    def not_null(address: Address):
+    def not_null(self, address: Address):
         hx_null = Address.from_string("hx0000000000000000000000000000000000000000")
         cx_null = Address.from_string("cx0000000000000000000000000000000000000000")
         if address == hx_null or address == cx_null:
-            raise IconScoreException("invalid address")
+            self.revert("invalid address")
 
     def owner_does_not_exist(self, owner: Address):
         if self._is_owner[owner] is True:
-            raise IconScoreException(f"{owner} is already exist as a owner of wallet")
+            self.revert(f"{owner} is already exist as a owner of wallet")
 
     def owner_exist(self, owner: Address):
         if self._is_owner[owner] is False:
-            raise IconScoreException(f"{owner} is not a owner of wallet")
+            self.revert(f"{owner} is not a owner of wallet")
 
     def transaction_exists(self, transaction_id: int):
         if self._transactions_info[transaction_id] == "" or self._transaction_count <= transaction_id:
-            raise IconScoreException(f"transaction '{transaction_id}' is not exist")
+            self.revert(f"transaction '{transaction_id}' is not exist")
 
     def confirmed(self, transation_id: int, owner: Address):
         if self._confirmations[transation_id][owner] is False:
-            raise IconScoreException(f"{owner} hasn't confirmed to transaction '{transaction_id}' yet")
+            self.revert(f"{owner} hasn't confirmed to transaction '{transaction_id}' yet")
 
     def not_confirmed(self, transation_id: int, owner: Address):
         if self._confirmations[transation_id][owner] is True:
-            raise IconScoreException(f"{owner} has already confirmed to transaction '{transaction_id}'")
+            self.revert(f"{owner} has already confirmed to transaction '{transaction_id}'")
 
     def not_executed(self, transaction_id: int):
         if self._transactions_executed[transaction_id] is True:
-            raise IconScoreException(f"transaction '{transaction_id}' has already executed")
+            self.revert(f"transaction '{transaction_id}' has already executed")
 
     def valid_requirement(self, owner_count: int, required: int):
         if owner_count > self._MAX_OWNER_COUNT or \
                 required > owner_count or \
                 required <= 0 or \
                 owner_count == 0:
-            raise IconScoreException(f"invalid requirement")
+            self.revert(f"invalid requirement")
 
     @payable
     def fallback(self):
@@ -197,7 +195,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
         if(self._is_confirmed(transaction_id)):
             txn = self._transactions_info[transaction_id]
-            if(self._external_call(txn)):
+            # todo: ()
+            if self._external_call(txn):
                 self._transactions_executed[transaction_id] = True
                 # event log
                 self.Execution(transaction_id)
@@ -292,7 +291,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self.RequirementChange(_required)
 
     #TODO: check external readonly method need to check params' data
-
     @external(readonly=True)
     def getRequirements(self) -> int:
         return self._required

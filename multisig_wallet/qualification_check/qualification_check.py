@@ -9,7 +9,7 @@ def only_wallet(func):
     @wraps(func)
     def __wrapper(calling_obj: object, *args, **kwargs):
         if calling_obj.msg.sender != calling_obj.address:
-            raise IconScoreException(
+            calling_obj.revert(
                 f"{func} method only can be called by wallet SCORE(address: {calling_obj.address})")
 
         return func(calling_obj, *args, **kwargs)
