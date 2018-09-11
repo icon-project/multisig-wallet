@@ -51,7 +51,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getOwners",
-                "params": {}
+                "params": {"_from":"0","_to":"10"}
             }
         }
         response = self._query(query_request)
@@ -142,7 +142,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getOwners",
-                "params": {}
+                "params": {"_from":"0","_to":"10"}
             }
         }
         response = self._query(query_request)

@@ -308,9 +308,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return self._is_owner[_owner]
 
     @external(readonly=True)
-    def getOwners(self)-> list:
+    def getOwners(self, _from: int, _to: int)-> list:
+        #todo: add from to
         owner_list = []
-        for owner in self._owners:
+        for idx, owner in enumerate(self._owners, start=_from):
+            if idx == _to:
+                break
             owner_list.append(owner)
 
         return owner_list
@@ -324,10 +327,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return count
 
     @external(readonly=True)
-    def getConfirmations(self, _transaction_id: int)-> list:
+    def getConfirmations(self, _from: int, _to: int, _transaction_id: int)-> list:
         #todo: add from to
         confirmed_addrs = []
-        for owner in self._owners:
+        for idx, owner in enumerate(self._owners, start=_from):
+            if idx == _to:
+                break
             if self._confirmations[_transaction_id][owner]:
                 confirmed_addrs.append(owner)
 
@@ -345,7 +350,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @external(readonly=True)
     def getTransactionIds(self, _from: int, _to: int, _pending: bool, _executed: bool)-> list:
         transaction_ids = []
-        for tx_id in range(_from, _to+1):
+        for tx_id in range(_from, _to):
             if (_pending and not self._transactions_executed[tx_id]) or (_executed and self._transactions_executed[tx_id]):
                 transaction_ids.append(tx_id)
 
