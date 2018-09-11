@@ -65,8 +65,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def on_install(self, owners: str, required: int) -> None:
         super().on_install()
-        #todo: trim
-        owners = owners.split(',')
+
+        owners = owners.replace(" ", "").split(',')
         for owner in owners:
             owner_addr = Address.from_string(owner)
             self._owners.put(owner_addr)
@@ -220,7 +220,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                      kw_dict=method_params,
                      amount=tx_info_dict['value'])
         else:
-            execute_result = self.icx.transfer(tx_info_dict['destination'], tx_info_dict['value'])
+            execute_result = self.icx.send(tx_info_dict['destination'], tx_info_dict['value'])
 
         return execute_result
 
