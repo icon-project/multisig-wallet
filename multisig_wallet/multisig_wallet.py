@@ -88,38 +88,38 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         hx_null = Address.from_string("hx0000000000000000000000000000000000000000")
         cx_null = Address.from_string("cx0000000000000000000000000000000000000000")
         if address == hx_null or address == cx_null:
-            raise IconScoreException
+            raise IconScoreException("invalid address")
 
     def owner_does_not_exist(self, owner: Address):
         if self._is_owner[owner] is True:
-            raise IconScoreException
+            raise IconScoreException(f"{owner} is already exist as a owner of wallet")
 
     def owner_exist(self, owner: Address):
         if self._is_owner[owner] is False:
-            raise IconScoreException
+            raise IconScoreException(f"{owner} is not a owner of wallet")
 
     def transaction_exists(self, transaction_id: int):
         if self._transactions_info[transaction_id] == "" or self._transaction_count <= transaction_id:
-            raise IconScoreException
+            raise IconScoreException(f"transaction '{transaction_id}' is not exist")
 
     def confirmed(self, transation_id: int, owner: Address):
         if self._confirmations[transation_id][owner] is False:
-            raise IconScoreException
+            raise IconScoreException(f"{owner} hasn't confirmed to transaction '{transaction_id}' yet")
 
     def not_confirmed(self, transation_id: int, owner: Address):
         if self._confirmations[transation_id][owner] is True:
-            raise IconScoreException
+            raise IconScoreException(f"{owner} has already confirmed to transaction '{transaction_id}'")
 
     def not_executed(self, transaction_id: int):
         if self._transactions_executed[transaction_id] is True:
-            raise IconScoreException
+            raise IconScoreException(f"transaction '{transaction_id}' has already executed")
 
     def valid_requirement(self, owner_count: int, required: int):
         if owner_count > self._MAX_OWNER_COUNT or \
                 required > owner_count or \
                 required <= 0 or \
                 owner_count == 0:
-            raise IconScoreException
+            raise IconScoreException(f"invalid requirement")
 
     @payable
     def fallback(self):
@@ -136,6 +136,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
         # supplement from gnosis
         self.owner_exist(self.msg.sender)
+
         # when user input "" or None as a _params' value,
         # this will be changed to {} so doesn't check json format
         if _params != "" and _params is not None:
@@ -171,7 +172,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def _add_transaction(self, _destination: Address, _method: str, _params: str, _value: int, _description: str) ->int:
         self.not_null(_destination)
 
-        # as locals function snapshot current local variables,
+        # as locals method snapshot current local variables,
         # this code must be positioned prior to define other local variables
         tx_info = locals()
         tx_info["_destination"] = str(tx_info["_destination"])
@@ -189,7 +190,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return transaction_id
 
     def _execute_transaction(self, transaction_id: int):
-        # reason why check twice is for the case that someone call this function from another wallet.
+        # reason why check twice is for the case that someone call this method from another wallet.
         self.owner_exist(self.msg.sender)
         self.confirmed(transaction_id, self.msg.sender)
         self.not_executed(transaction_id)
@@ -289,6 +290,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self._required = _required
         # event log
         self.RequirementChange(_required)
+
+    #TODO: check external readonly method need to check params' data
 
     @external(readonly=True)
     def getRequirements(self) -> int:

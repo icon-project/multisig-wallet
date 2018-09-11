@@ -1,5 +1,4 @@
-from iconservice.base.address import Address
-
+from iconservice import *
 
 def params_type_converter(_type: str, _value: str):
     param = None
@@ -13,6 +12,9 @@ def params_type_converter(_type: str, _value: str):
         param = _convert_value_address(_value)
     elif _type == "bytes":
         param = _convert_value_bytes(_value)
+    else:
+        raise IconScoreException\
+            (f"{_type} is not supported type(only int, str, bool, Address, bytes are supporteds)")
     return param
 
 
