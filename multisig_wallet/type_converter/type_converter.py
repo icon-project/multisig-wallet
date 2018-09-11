@@ -18,7 +18,7 @@ def params_type_converter(_type: str, _value: str):
             (f"{_type} is not supported type(only int, str, bool, Address, bytes are supported)")
     return param
 
-
+#Todo: builtin
 def _convert_value_int(value: str) -> int:
     if value.startswith('0x') or value.startswith('-0x'):
         return int(value, 16)

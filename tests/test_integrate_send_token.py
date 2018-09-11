@@ -22,9 +22,10 @@ from iconservice.base.address import Address
 
 import json
 
-class TestIntegrateSendToken(TestIntegrateBase):
 
+class TestIntegrateSendToken(TestIntegrateBase):
     def test_send_token(self):
+        ## 시나리오.1 send 500 token to owner4
         # deploy multisig wallet score(2to3 multisig)
         tx1 = self._make_deploy_tx("",
                                    "multisig_wallet",
@@ -63,7 +64,7 @@ class TestIntegrateSendToken(TestIntegrateBase):
         response = self._query(query_request)
         self.assertEqual(response, token_total_supply)
 
-        # owner1이 소유한 토큰 중 1000token을 multisig wallet score로 전송
+        # owner1이 소유한 토큰 중 1000token 을 multisig wallet score로 전송
         transfer_tx_params = {'_to': str(multisig_score_addr), '_value': str(hex(1000))}
         add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                                        addr_to=token_score_addr,
@@ -106,12 +107,12 @@ class TestIntegrateSendToken(TestIntegrateBase):
 
         # 예치된 1000토큰 중 500토큰을 owner4에게 보내는 submit transaction 생성
         transfer_token_params = [
-            {'_name': '_to',
-             '_type': 'Address',
-             '_value': str(self._owner4)},
-            {'_name': '_value',
-             '_type': 'int',
-             '_value': str(hex(500))}
+            {'name': '_to',
+             'type': 'Address',
+             'value': str(self._owner4)},
+            {'name': '_value',
+             'type': 'int',
+             'value': str(hex(500))}
         ]
         ## owner1을 이용하여 submitTransaction을 진행(icx_send)
         submit_tx_params = {'_destination': str(token_score_addr),
@@ -142,6 +143,20 @@ class TestIntegrateSendToken(TestIntegrateBase):
         response = self._query(query_request)
         expected_confirm_count = 1
         self.assertEqual(response, expected_confirm_count)
+
+        # owner4의 token 보유량이 0 인지 확인
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(self._owner4)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(response, 0)
 
         ## owner2를 이용하여 confirm transaction 생성
         confirm_tx_params = {'_transaction_id': '0x00'}
@@ -178,6 +193,20 @@ class TestIntegrateSendToken(TestIntegrateBase):
             "data": {
                 "method": "balanceOf",
                 "params": {'_owner': str(self._owner4)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(response, 500)
+
+        # Multisig wallet의 남은 예치량 확인(should be 500)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(multisig_score_addr)}
             }
         }
         response = self._query(query_request)

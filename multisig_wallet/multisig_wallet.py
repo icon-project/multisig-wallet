@@ -50,6 +50,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
+        #Todo: change transaction data to Struct
         # _transactions_info's key: transaction_id(int type)
         self._transactions_info = DictDB('transactions_info', db, value_type=str)
         # _transactions_executed's key: transaction_id(int type)
@@ -64,6 +65,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def on_install(self, owners: str, required: int) -> None:
         super().on_install()
+        #todo: trim
         owners = owners.split(',')
         for owner in owners:
             owner_addr = Address.from_string(owner)
@@ -170,13 +172,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def _add_transaction(self, _destination: Address, _method: str, _params: str, _value: int, _description: str) ->int:
         self.not_null(_destination)
 
-        # as locals method snapshot current local variables,
-        # this code must be positioned prior to define other local variables
-        tx_info = locals()
-        tx_info["_destination"] = str(tx_info["_destination"])
-        if tx_info["_method"] == "":
-            tx_info["_method"] = None
-        del tx_info["self"]
+        tx_info = {}
+        tx_info["destination"] = str(_destination)
+        tx_info["method"] = None if _method == "" else _method
+        tx_info["params"] = _params
+        tx_info["value"] = _value
+        tx_info["description"] = _description
 
         transaction_id = self._transaction_count
 
@@ -188,14 +189,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return transaction_id
 
     def _execute_transaction(self, transaction_id: int):
-        # reason why check twice is for the case that someone call this method from another wallet.
-        self.owner_exist(self.msg.sender)
-        self.confirmed(transaction_id, self.msg.sender)
-        self.not_executed(transaction_id)
-
-        if(self._is_confirmed(transaction_id)):
+        # as this method can't be called from other SCORE or EOA, doesn't check owner, transactions_id, confirmations.
+        # (already checked in confirmTransaction method)
+        if self._is_confirmed(transaction_id):
             txn = self._transactions_info[transaction_id]
-            # todo: ()
             if self._external_call(txn):
                 self._transactions_executed[transaction_id] = True
                 # event log
@@ -207,22 +204,24 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def _external_call(self, _tx_info: str)->bool:
         tx_info_dict = json.loads(_tx_info)
         # convert Address from string to Address type
-        tx_info_dict['_destination'] = Address.from_string(tx_info_dict['_destination'])
+        tx_info_dict['destination'] = Address.from_string(tx_info_dict['destination'])
 
-        if tx_info_dict['_destination'].is_contract:
+        if tx_info_dict['destination'].is_contract:
             method_params = {}
-            if tx_info_dict['_params'] != "" and tx_info_dict['_params'] is not None:
-                params = json.loads(tx_info_dict['_params'])
+            if tx_info_dict['params'] != "" and tx_info_dict['params'] is not None:
+                params = json.loads(tx_info_dict['params'])
                 for param in params:
-                    method_params[param['_name']] = params_type_converter(param['_type'], param['_value'])
+                    method_params[param['name']] = params_type_converter(param['type'], param['value'])
 
+            #todo: wrapping this parts try, catch and return bool type
             execute_result = self.\
-                call(addr_to=tx_info_dict['_destination'],
-                     func_name=tx_info_dict['_method'],
+                call(addr_to=tx_info_dict['destination'],
+                     func_name=tx_info_dict['method'],
                      kw_dict=method_params,
-                     amount=tx_info_dict['_value'])
+                     amount=tx_info_dict['value'])
         else:
-            execute_result = self.icx.send(tx_info_dict['_destination'], tx_info_dict['_value'])
+            execute_result = self.icx.transfer(tx_info_dict['destination'], tx_info_dict['value'])
+
         return execute_result
 
     def _is_confirmed(self, transaction_id) -> bool:
@@ -235,6 +234,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @only_wallet
     @external
+    #todo: walletowner
     def _add_owner(self, _owner: Address):
         self.owner_does_not_exist(_owner)
         self.not_null(_owner)
@@ -257,7 +257,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                 self._owners[idx] = _new_owner
                 break
 
-        self._is_owner[_owner] = False
+        del self._is_owner[_owner]
         self._is_owner[_new_owner] = True
 
         # event log
@@ -277,7 +277,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                 self._owners[idx] = self._owners.pop()
                 break
 
-        self._is_owner[_owner] = False
+        del self._is_owner[_owner]
         # event log
         self.OwnerRemoval(_owner)
 
@@ -325,6 +325,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external(readonly=True)
     def getConfirmations(self, _transaction_id: int)-> list:
+        #todo: add from to
         confirmed_addrs = []
         for owner in self._owners:
             if self._confirmations[_transaction_id][owner]:
