@@ -2,59 +2,148 @@ from iconservice import *
 from .type_converter.type_converter import params_type_converter
 from .qualification_check.qualification_check import *
 
+from struct import Struct, pack, unpack
 import json
 
+
+class Transaction:
+    _struct = Struct(f'>?x21sx150sx300sx32sx300s')
+
+    def __init__(self,
+                 destination: Address,
+                 method: str,
+                 params: str,
+                 value: int,
+                 description: str,
+                 executed: bool=False):
+
+        self._executed = executed
+        self._destination = destination
+        self._method = "" if method is None else method
+        self._params = "" if params is None else params
+        self._value = value
+        self._description = description
+
+    @property
+    def executed(self) -> bool:
+        return self._executed
+
+    @executed.setter
+    def executed(self, executed: bool):
+        self._executed = executed
+
+    @property
+    def destination(self) -> Address:
+        return self._destination
+
+    @destination.setter
+    def destination(self, destination: Address):
+        self._destination = destination
+
+    @property
+    def method(self) -> str:
+        return self._method
+
+    @method.setter
+    def method(self, method: str):
+        self._method = method
+
+    @property
+    def params(self) -> str:
+        return self._params
+
+    @params.setter
+    def params(self, params: str):
+        self._params = params
+
+    @property
+    def value(self) -> int:
+        return self._value
+
+    @value.setter
+    def value(self, value: str):
+        self._value = value
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @description.setter
+    def description(self, description: str):
+        self._description = description
+
+    @staticmethod
+    def from_bytes(buf: bytes):
+        executed, destination, method, params, value, description = \
+            Transaction._struct.unpack(buf)
+
+        return Transaction(Address.from_bytes(destination.strip(b'\x00')),
+                           method.strip(b'\x00').decode(encoding="utf-8"),
+                           params.strip(b'\x00').decode(encoding="utf-8"),
+                           int.from_bytes(value, 'big'),
+                           description.strip(b'\x00').decode(encoding="utf-8"),
+                           bool(executed))
+
+    def to_bytes(self) -> bytes:
+        transaction = Transaction._struct.pack\
+            (self._executed,
+             self._destination.to_bytes(),
+             self._method.encode(encoding="utf-8"),
+             self._params.encode(encoding="utf-8"),
+             #Todo: need to be refactoring
+             self._value.to_bytes(32, 'big'),
+             self._description.encode(encoding="utf-8"))
+        print(transaction)
+        return transaction
 
 class MultiSigWallet(IconScoreBase, IconScoreException):
     _MAX_OWNER_COUNT = 50
 
     @eventlog(indexed=2)
-    def Confirmation(self, sender: Address, transaction_id: int):
+    def Confirmation(self, _sender: Address, _transactionId: int):
         pass
 
     @eventlog(indexed=2)
-    def Revocation(self, sender: Address, transaction_id: int):
+    def Revocation(self, _sender: Address, _transactionId: int):
         pass
 
     @eventlog(indexed=1)
-    def Submission(self, transaction_id: int):
+    def Submission(self, _transactionId: int):
         pass
 
     @eventlog(indexed=1)
-    def Execution(self, transaction_id: int):
+    def Execution(self, _transactionId: int):
         pass
 
     @eventlog(indexed=1)
-    def ExecutionFailure(self, transaction_id: int):
+    def ExecutionFailure(self, _transactionId: int):
         pass
 
     @eventlog(indexed=1)
-    def Deposit(self, sender: Address, value: int):
+    def Deposit(self, _sender: Address, _value: int):
         pass
 
     @eventlog(indexed=1)
-    def DepositToken(self, sender: Address, value: int, data: bytes):
+    def DepositToken(self, _sender: Address, _value: int, _data: bytes):
         pass
 
     @eventlog(indexed=1)
-    def OwnerAddition(self, owner: Address):
+    def OwnerAddition(self, _owner: Address):
         pass
 
     @eventlog(indexed=1)
-    def OwnerRemoval(self, owner: Address):
+    def OwnerRemoval(self, _owner: Address):
         pass
 
     @eventlog
-    def RequirementChange(self, required: int):
+    def RequirementChange(self, _required: int):
         pass
 
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
         #Todo: change transaction data to Struct
         # _transactions_info's key: transaction_id(int type)
-        self._transactions_info = DictDB('transactions_info', db, value_type=str)
-        # _transactions_executed's key: transaction_id(int type)
-        self._transactions_executed = DictDB('transactions_executed', db, value_type=bool)
+        self._transactions = DictDB('transactions', db, value_type=bytes)
         # _confirmations's key: transaction_id(int type), address(Address type)
         self._confirmations = DictDB('confirmations', db, value_type=bool, depth=2)
         # _is_owner's key: address(Address type)
@@ -63,31 +152,32 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self._required = VarDB('required', db, value_type=int)
         self._transaction_count = VarDB('transactionCount', db, value_type=int)
 
-    def on_install(self, owners: str, required: int) -> None:
+    def on_install(self, _owners: str, _required: int) -> None:
         super().on_install()
 
-        owners = owners.replace(" ", "").split(',')
-        for owner in owners:
+        _owners = _owners.replace(" ", "").split(',')
+        for owner in _owners:
             owner_addr = Address.from_string(owner)
             self._owners.put(owner_addr)
             self._is_owner[owner_addr] = True
 
-        self._required = required
+        self._required = _required
         self._transaction_count = 0
 
     def on_update(self) -> None:
         super().on_update()
 
-    def _is_json(self, _json: str):
+    def _is_json(self, jsons: str):
         try:
-            json.loads(_json)
+            json.loads(jsons)
         except ValueError as e:
             self.revert(f"json format error: {e}")
 
     def not_null(self, address: Address):
+        #Todo: check this parts
         hx_null = Address.from_string("hx0000000000000000000000000000000000000000")
         cx_null = Address.from_string("cx0000000000000000000000000000000000000000")
-        if address == hx_null or address == cx_null:
+        if address== hx_null or address == cx_null:
             self.revert("invalid address")
 
     def owner_does_not_exist(self, owner: Address):
@@ -99,19 +189,19 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             self.revert(f"{owner} is not a owner of wallet")
 
     def transaction_exists(self, transaction_id: int):
-        if self._transactions_info[transaction_id] == "" or self._transaction_count <= transaction_id:
+        if self._transactions[transaction_id] is None or self._transaction_count <= transaction_id:
             self.revert(f"transaction '{transaction_id}' is not exist")
 
-    def confirmed(self, transation_id: int, owner: Address):
-        if self._confirmations[transation_id][owner] is False:
+    def confirmed(self, transaction_id: int, owner: Address):
+        if self._confirmations[transaction_id][owner] is False:
             self.revert(f"{owner} hasn't confirmed to transaction '{transaction_id}' yet")
 
     def not_confirmed(self, transation_id: int, owner: Address):
         if self._confirmations[transation_id][owner] is True:
-            self.revert(f"{owner} has already confirmed to transaction '{transaction_id}'")
+            self.revert(f"{owner} has already confirmed to transaction '{transation_id}'")
 
     def not_executed(self, transaction_id: int):
-        if self._transactions_executed[transaction_id] is True:
+        if self._transactions[transaction_id][0] is True:
             self.revert(f"transaction '{transaction_id}' has already executed")
 
     def valid_requirement(self, owner_count: int, required: int):
@@ -160,29 +250,28 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self._execute_transaction(_transaction_id)
 
     @external
-    def revokeTransaction(self, transaction_id: int):
+    def revokeTransaction(self, _transaction_id: int):
         self.owner_exist(self.msg.sender)
-        self.confirmed(transaction_id, self.msg.sender)
-        self.not_executed(transaction_id)
+        self.confirmed(_transaction_id, self.msg.sender)
+        self.not_executed(_transaction_id)
 
-        self._confirmations[transaction_id][self.msg.sender] = False
+        self._confirmations[_transaction_id][self.msg.sender] = False
         # eventlog
-        self.Revocation(self.msg.sender, transaction_id)
+        self.Revocation(self.msg.sender, _transaction_id)
 
-    def _add_transaction(self, _destination: Address, _method: str, _params: str, _value: int, _description: str) ->int:
-        self.not_null(_destination)
+    def _add_transaction(self, destination: Address, method: str, params: str, value: int, description: str) ->int:
+        self.not_null(destination)
 
-        tx_info = {}
-        tx_info["destination"] = str(_destination)
-        tx_info["method"] = None if _method == "" else _method
-        tx_info["params"] = _params
-        tx_info["value"] = _value
-        tx_info["description"] = _description
+        transaction = Transaction(destination=destination,
+                                  method=method,
+                                  params=params,
+                                  value=value,
+                                  description=description
+                                  )
 
         transaction_id = self._transaction_count
 
-        tx_info_str = json.dumps(tx_info)
-        self._transactions_info[transaction_id] = tx_info_str
+        self._transactions[transaction_id] = transaction.to_bytes()
         self._transaction_count = transaction_id + 1
         # event log
         self.Submission(transaction_id)
@@ -192,35 +281,46 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # as this method can't be called from other SCORE or EOA, doesn't check owner, transactions_id, confirmations.
         # (already checked in confirmTransaction method)
         if self._is_confirmed(transaction_id):
-            txn = self._transactions_info[transaction_id]
+            txn = self._transactions[transaction_id]
             if self._external_call(txn):
-                self._transactions_executed[transaction_id] = True
+                #Todo: need refactoring
+                transaction = bytearray(self._transactions[transaction_id])
+                # change executed: False => True
+                transaction[0] = True
+                self._transactions[transaction_id] = bytes(transaction)
                 # event log
                 self.Execution(transaction_id)
             else:
                 # event log
                 self.ExecutionFailure(transaction_id)
 
-    def _external_call(self, _tx_info: str)->bool:
-        tx_info_dict = json.loads(_tx_info)
+    def _external_call(self, serialized_tx: bytes)->bool:
+        transaction = Transaction.from_bytes(serialized_tx)
         # convert Address from string to Address type
-        tx_info_dict['destination'] = Address.from_string(tx_info_dict['destination'])
 
-        if tx_info_dict['destination'].is_contract:
-            method_params = {}
-            if tx_info_dict['params'] != "" and tx_info_dict['params'] is not None:
-                params = json.loads(tx_info_dict['params'])
-                for param in params:
-                    method_params[param['name']] = params_type_converter(param['type'], param['value'])
+        method_params = {}
+        if transaction.params != "" and transaction.params is not None:
+            params = json.loads(transaction.params)
 
-            #todo: wrapping this parts try, catch and return bool type
-            execute_result = self.\
-                call(addr_to=tx_info_dict['destination'],
-                     func_name=tx_info_dict['method'],
-                     kw_dict=method_params,
-                     amount=tx_info_dict['value'])
-        else:
-            execute_result = self.icx.send(tx_info_dict['destination'], tx_info_dict['value'])
+            for param in params:
+                print('param', type(param['value']))
+                method_params[param['name']] = params_type_converter(param['type'], param['value'])
+
+        print('external', transaction.method == "", method_params, transaction.value)
+        try:
+            if transaction.destination.is_contract:
+                print('is_contract', transaction.destination, transaction.method == None)
+                self.call(addr_to=transaction.destination,
+                          func_name=None if transaction.method == "" else transaction.method,
+                          kw_dict=method_params,
+                          amount=transaction.value)
+            else:
+                print('is_eoa', transaction.destination)
+                self.icx.transfer(transaction.destination, transaction.value)
+            execute_result = True
+        except:
+            print('excepted')
+            execute_result = False
 
         return execute_result
 
@@ -235,7 +335,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @only_wallet
     @external
     #todo: walletowner
-    def _add_owner(self, _owner: Address):
+    def addOwner(self, _owner: Address):
         self.owner_does_not_exist(_owner)
         self.not_null(_owner)
         # check if owner's count exceed _MAX_OWNER_COUNT
@@ -248,25 +348,25 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @only_wallet
     @external
-    def _replace_owner(self, _owner: Address, _new_owner: Address):
+    def replaceOwner(self, _owner: Address, _newOwner: Address):
         self.owner_exist(_owner)
-        self.owner_does_not_exist(_new_owner)
+        self.owner_does_not_exist(_newOwner)
 
         for idx, owner in enumerate(self._owners):
             if owner == _owner:
-                self._owners[idx] = _new_owner
+                self._owners[idx] = _newOwner
                 break
 
         del self._is_owner[_owner]
-        self._is_owner[_new_owner] = True
+        self._is_owner[_newOwner] = True
 
         # event log
         self.OwnerRemoval(_owner)
-        self.OwnerAddition(_new_owner)
+        self.OwnerAddition(_newOwner)
 
     @only_wallet
     @external
-    def _remove_owner(self, _owner: Address):
+    def removeOwner(self, _owner: Address):
         self.owner_exist(_owner)
         # if all owners are removed, this contract can not be executed.
         # so check if _owner is only one left in this wallet
@@ -283,7 +383,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @only_wallet
     @external
-    def _change_requirement(self, _required: int):
+    def changeRequirement(self, _required: int):
         self.valid_requirement(len(self._owners), _required)
 
         self._required = _required
@@ -296,20 +396,20 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return self._required
 
     @external(readonly=True)
-    def getTransaction_info(self, _transaction_id: int) -> str:
-        return self._transactions_info[_transaction_id]
+    def getTransaction_info(self, _transactionId: int) -> bytes:
+        #Todo: need to be changed: return informative data
+        return self._transactions[_transactionId]
 
     @external(readonly=True)
-    def getTransactionsExecuted(self, _transaction_id: int) -> bool:
-        return self._transactions_executed[_transaction_id]
+    def getTransactionsExecuted(self, _transactionId: int) -> bool:
+        return self._transactions[_transactionId][0]
 
     @external(readonly=True)
-    def checkIsOwner(self, _owner:Address)-> bool:
+    def checkIsOwner(self, _owner: Address)-> bool:
         return self._is_owner[_owner]
 
     @external(readonly=True)
     def getOwners(self, _from: int, _to: int)-> list:
-        #todo: add from to
         owner_list = []
         for idx, owner in enumerate(self._owners, start=_from):
             if idx == _to:
@@ -319,21 +419,20 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return owner_list
 
     @external(readonly=True)
-    def getConfirmationCount(self, _transaction_id: int)-> int:
+    def getConfirmationCount(self, _transactionId: int)-> int:
         count = 0
         for owner in self._owners:
-            if self._confirmations[_transaction_id][owner]:
+            if self._confirmations[_transactionId][owner]:
                 count += 1
         return count
 
     @external(readonly=True)
-    def getConfirmations(self, _from: int, _to: int, _transaction_id: int)-> list:
-        #todo: add from to
+    def getConfirmations(self, _from: int, _to: int, _transactionId: int)-> list:
         confirmed_addrs = []
         for idx, owner in enumerate(self._owners, start=_from):
             if idx == _to:
                 break
-            if self._confirmations[_transaction_id][owner]:
+            if self._confirmations[_transactionId][owner]:
                 confirmed_addrs.append(owner)
 
         return confirmed_addrs

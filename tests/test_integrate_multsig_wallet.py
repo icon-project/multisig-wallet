@@ -32,9 +32,9 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
                                    "multisig_wallet",
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
-                                   deploy_params={"owners": str(
+                                   deploy_params={"_owners": str(
                                        "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
-                                       "required": "0x02"})
+                                       "_required": "0x02"})
 
 
         prev_block, tx_results = self._make_and_req_block([tx1])
@@ -80,7 +80,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
              'value': str(self._owner4)}
         ]
         submit_tx_params = {'_destination': str(multisig_score_addr),
-                            '_method': '_add_owner',
+                            '_method': 'addOwner',
                             '_params': json.dumps(add_owner_params),
                             '_description': 'add owner4 in wallet'}
 
@@ -101,7 +101,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x00"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
@@ -119,6 +119,8 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
+        print('multisig',multisig_score_addr)
+
         # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 2)
         query_request = {
             "version": self._version,
@@ -127,11 +129,26 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x00"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
         expected_confirm_count = 2
+        self.assertEqual(response, expected_confirm_count)
+
+        # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 2)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionsExecuted",
+                "params": {'_transactionId': "0x00"}
+            }
+        }
+        response = self._query(query_request)
+        expected_confirm_count = True
         self.assertEqual(response, expected_confirm_count)
 
         # 정상 처리되었는지 getOwners를 실행하여 체크(4개의 address가 등록되어야 한다)
@@ -142,10 +159,11 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getOwners",
-                "params": {"_from":"0","_to":"10"}
+                "params": {"_from": "0","_to": "10"}
             }
         }
         response = self._query(query_request)
         expected_owners = [self._owner1, self._owner2, self._owner3, self._owner4]
+        print(response)
         self.assertEqual(response, expected_owners)
 

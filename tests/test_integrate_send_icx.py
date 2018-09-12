@@ -32,9 +32,9 @@ class TestIntegrateSendIcx(TestIntegrateBase):
                                    "multisig_wallet",
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
-                                   deploy_params={"owners": str(
+                                   deploy_params={"_owners": str(
                                        "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
-                                       "required": "0x02"})
+                                       "_required": "0x02"})
 
         # deploy token score for receive icx
         token_total_supply = 10000
@@ -60,7 +60,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getOwners",
-                "params": {"_from":"0","_to":"10"}
+                "params": {"_from": "0","_to": "10"}
             }
         }
         response = self._query(query_request)
@@ -137,7 +137,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x00"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
@@ -163,7 +163,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x00"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
@@ -216,7 +216,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x01"}
+                "params": {'_transactionId': "0x01"}
             }
         }
         response = self._query(query_request)
@@ -242,7 +242,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x01"}
+                "params": {'_transactionId': "0x01"}
             }
         }
         response = self._query(query_request)

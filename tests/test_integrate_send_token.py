@@ -31,9 +31,9 @@ class TestIntegrateSendToken(TestIntegrateBase):
                                    "multisig_wallet",
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
-                                   deploy_params={"owners": str(
+                                   deploy_params={"_owners": str(
                                        "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
-                                       "required": "0x02"})
+                                       "_required": "0x02"})
 
         token_total_supply = 10000
         tx2 = self._make_deploy_tx("",
@@ -112,8 +112,10 @@ class TestIntegrateSendToken(TestIntegrateBase):
              'value': str(self._owner4)},
             {'name': '_value',
              'type': 'int',
-             'value': str(hex(500))}
+             'value': hex(500)}
         ]
+
+
         ## owner1을 이용하여 submitTransaction을 진행(icx_send)
         submit_tx_params = {'_destination': str(token_score_addr),
                             '_method': 'transfer',
@@ -137,7 +139,7 @@ class TestIntegrateSendToken(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x00"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
@@ -177,7 +179,7 @@ class TestIntegrateSendToken(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transaction_id': "0x00"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
