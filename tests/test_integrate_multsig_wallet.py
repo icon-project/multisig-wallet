@@ -25,7 +25,7 @@ from iconservice.base.address import Address
 class TestIntegrateMultiSigWallet(TestIntegrateBase):
     def test_multisig_wallet(self):
         ## 시나리오.1 add owner
-        multisig_score_addr = self._deploy_multisig_wallet_score()
+        multisig_score_addr = self._deploy_multisig_wallet()
 
         # owner1을 이용하여 submitTransaction을 진행(add owner), 실제 add owner가 처리되었는지 체크
         add_owner_params = [
@@ -72,8 +72,6 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
-
-        print('multisig', multisig_score_addr)
 
         # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 2)
         query_request = {

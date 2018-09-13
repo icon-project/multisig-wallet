@@ -190,7 +190,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def transaction_exists(self, transaction_id: int):
         if self._transactions[transaction_id] is None or self._transaction_count <= transaction_id:
-            self.revert(f"transaction '{transaction_id}' is not exist")
+            self.revert(f"transaction id '{transaction_id}' is not exist")
 
     def confirmed(self, transaction_id: int, wallet_owner: Address):
         if self._confirmations[transaction_id][wallet_owner] is False:
@@ -202,7 +202,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def not_executed(self, transaction_id: int):
         if self._transactions[transaction_id][0] is True:
-            self.revert(f"transaction '{transaction_id}' has already executed")
+            self.revert(f"transaction id '{transaction_id}' has already executed")
 
     def valid_requirement(self, wallet_owner_count: int, required: int):
         if wallet_owner_count > self._MAX_WALLET_OWNER_COUNT or \

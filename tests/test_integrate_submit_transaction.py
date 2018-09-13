@@ -48,7 +48,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        # success case: when value is string type, should be confirm.
+        # success case: when value is string type, should be submitted.
         add_owner_params = [
             {'name': '_required',
              'type': 'int',
@@ -86,8 +86,10 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
                                               )
         prev_block, tx_results = self._make_and_req_block([invalid_tx])
         self._write_precommit_state(prev_block)
-        expected_massage = "dict is not supported type(only int, str, bool, Address, bytes are supported) (32000)"
-        self.assertEqual(expected_massage, tx_results[0].failure.message)
+
+        expected_revert_massage = "dict is not supported type(only int, str, bool, Address, bytes are supported) (32000)"
+        actual_revert_massage = tx_results[0].failure.message
+        self.assertEqual(expected_revert_massage, actual_revert_massage)
 
         # failure case: invalid json format
         invalid_json_format_params = "{'test': }"
@@ -104,8 +106,10 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
                                               )
         prev_block, tx_results = self._make_and_req_block([invalid_tx])
         self._write_precommit_state(prev_block)
-        expected_massage = "can't convert params json data, check the format"
-        self.assertEqual(expected_massage, tx_results[0].failure.message)
+
+        expected_revert_massage = "can't convert params json data, check the format"
+        actual_revert_massage = tx_results[0].failure.message
+        self.assertEqual(expected_revert_massage, actual_revert_massage)
 
     def test_submit_transaction_check_wallet_owner(self):
         # failure case: not included wallet owner
@@ -128,8 +132,9 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([valid_tx])
         self._write_precommit_state(prev_block)
 
-        expected_massage = f'{self._owner4} is not a owner of wallet'
-        self.assertEqual(expected_massage, tx_results[0].failure.message)
+        expected_revert_massage = f'{self._owner4} is not a owner of wallet'
+        actual_revert_massage = tx_results[0].failure.message
+        self.assertEqual(expected_revert_massage, actual_revert_massage)
 
         query_request = {
             "version": self._version,
