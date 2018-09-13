@@ -32,7 +32,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
                                    "multisig_wallet",
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
-                                   deploy_params={"_owners": str(
+                                   deploy_params={"_walletOwners": str(
                                        "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
                                        "_required": "0x02"})
 
@@ -59,7 +59,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "to": multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getOwners",
+                "method": "getWalletOwners",
                 "params": {"_from": "0","_to": "10"}
             }
         }

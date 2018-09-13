@@ -32,7 +32,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
                                    "multisig_wallet",
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
-                                   deploy_params={"_owners": str(
+                                   deploy_params={"_walletOwners": str(
                                        "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
                                        "_required": "0x02"})
 
@@ -50,7 +50,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "to": multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getOwners",
+                "method": "getWalletOwners",
                 "params": {"_from":"0","_to":"10"}
             }
         }
@@ -75,12 +75,12 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
 
         # owner1을 이용하여 submitTransaction을 진행(add owner), 실제 add owner가 처리되었는지 체크
         add_owner_params = [
-            {'name': '_owner',
+            {'name': '_walletOwner',
              'type': 'Address',
              'value': str(self._owner4)}
         ]
         submit_tx_params = {'_destination': str(multisig_score_addr),
-                            '_method': 'addOwner',
+                            '_method': 'addWalletOwner',
                             '_params': json.dumps(add_owner_params),
                             '_description': 'add owner4 in wallet'}
 
@@ -158,7 +158,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
             "to": multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getOwners",
+                "method": "getWalletOwners",
                 "params": {"_from": "0","_to": "10"}
             }
         }

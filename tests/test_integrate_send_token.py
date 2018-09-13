@@ -31,7 +31,7 @@ class TestIntegrateSendToken(TestIntegrateBase):
                                    "multisig_wallet",
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
-                                   deploy_params={"_owners": str(
+                                   deploy_params={"_walletOwners": str(
                                        "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
                                        "_required": "0x02"})
 
