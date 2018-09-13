@@ -29,14 +29,14 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
 
     def test_submit_transaction_validate_params_format(self):
         # success case: valid params format
-        add_owner_params = [
+        change_requirement_params = [
             {'name': '_required',
              'type': 'int',
              'value': 3}
         ]
         submit_tx_params = {'_destination': str(self.multisig_score_addr),
                             '_method': 'changeRequirement',
-                            '_params': json.dumps(add_owner_params),
+                            '_params': json.dumps(change_requirement_params),
                             '_description': 'change requirements 2 to 3'}
 
         valid_tx = self._make_score_call_tx(addr_from=self._owner1,
@@ -49,14 +49,14 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         self.assertEqual(int(True), tx_results[0].status)
 
         # success case: when value is string type, should be submitted.
-        add_owner_params = [
+        change_requirement_params = [
             {'name': '_required',
              'type': 'int',
              'value': hex(3)}
         ]
         submit_tx_params = {'_destination': str(self.multisig_score_addr),
                             '_method': 'changeRequirement',
-                            '_params': json.dumps(add_owner_params),
+                            '_params': json.dumps(change_requirement_params),
                             '_description': 'change requirements 2 to 3'}
 
         valid_tx = self._make_score_call_tx(addr_from=self._owner1,
@@ -69,14 +69,14 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         self.assertEqual(int(True), tx_results[0].status)
 
         # failure case: when input unsupported type as params' type
-        add_owner_params = [
+        change_requirement_params = [
             {'name': '_required',
              'type': 'dict',
              'value': "{'test':'test'}"}
         ]
         unsupported_type_params = {'_destination': str(self.multisig_score_addr),
                             '_method': 'changeRequirement',
-                            '_params': json.dumps(add_owner_params),
+                            '_params': json.dumps(change_requirement_params),
                             '_description': 'change requirements 2 to 3'}
 
         invalid_tx = self._make_score_call_tx(addr_from=self._owner1,
@@ -149,7 +149,6 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         response = self._query(query_request)
         print(response)
         #self.assertEqual(response)
-
 
     def test_submit_transaction_check_transaction_listed_on(self):
         # submit 4 transaction and one transaction will be failed
@@ -261,4 +260,5 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         response = self._query(query_request)
         self.assertEqual(None, response)
 
+        #Todo: make transactions more then 10 and test getTransactionIds
 

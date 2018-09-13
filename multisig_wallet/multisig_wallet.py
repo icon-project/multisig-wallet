@@ -194,7 +194,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def confirmed(self, transaction_id: int, wallet_owner: Address):
         if self._confirmations[transaction_id][wallet_owner] is False:
-            self.revert(f"{wallet_owner} hasn't confirmed to transaction '{transaction_id}' yet")
+            self.revert(f"{wallet_owner} hasn't confirmed to transaction id '{transaction_id}' yet")
 
     def not_confirmed(self, transation_id: int, wallet_owner: Address):
         if self._confirmations[transation_id][wallet_owner] is True:
@@ -250,8 +250,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @external
     def revokeTransaction(self, _transactionId: int):
         self.wallet_owner_exist(self.msg.sender)
-        self.confirmed(_transactionId, self.msg.sender)
+        self.transaction_exists(_transactionId)
         self.not_executed(_transactionId)
+        self.confirmed(_transactionId, self.msg.sender)
 
         self._confirmations[_transactionId][self.msg.sender] = False
         # eventlog
