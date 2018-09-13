@@ -5,9 +5,20 @@ from .qualification_check.qualification_check import *
 from struct import Struct, pack, unpack
 import json
 
+#Todo: modify values
+VALUE_BYTES = 32
+ADDRESS_BYTES = 21
+METHOD_BYTES = 150
+PARAMS_BYTES = 300
+DESCRIPTION_BYTES = 300
+DATA_BYTE_ORDER = 'big'
+
 
 class Transaction:
-    _struct = Struct(f'>?x21sx150sx300sx32sx300s')
+
+
+    _struct = \
+        Struct(f'>?x{ADDRESS_BYTES}sx{METHOD_BYTES}sx{PARAMS_BYTES}sx{VALUE_BYTES}sx{DESCRIPTION_BYTES}s')
 
     def __init__(self,
                  destination: Address,
@@ -19,6 +30,7 @@ class Transaction:
 
         self._executed = executed
         self._destination = destination
+        # as None type can't be converted to bytes, must be changed to ""
         self._method = "" if method is None else method
         self._params = "" if params is None else params
         self._value = value
@@ -80,7 +92,7 @@ class Transaction:
         return Transaction(Address.from_bytes(destination.strip(b'\x00')),
                            method.strip(b'\x00').decode(encoding="utf-8"),
                            params.strip(b'\x00').decode(encoding="utf-8"),
-                           int.from_bytes(value, 'big'),
+                           int.from_bytes(value, DATA_BYTE_ORDER),
                            description.strip(b'\x00').decode(encoding="utf-8"),
                            bool(executed))
 
@@ -91,10 +103,11 @@ class Transaction:
              self._method.encode(encoding="utf-8"),
              self._params.encode(encoding="utf-8"),
              #Todo: need to be refactoring
-             self._value.to_bytes(32, 'big'),
+             self._value.to_bytes(VALUE_BYTES, DATA_BYTE_ORDER),
              self._description.encode(encoding="utf-8"))
         print(transaction)
         return transaction
+
 
 class MultiSigWallet(IconScoreBase, IconScoreException):
     _MAX_OWNER_COUNT = 50
@@ -141,7 +154,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
-        #Todo: change transaction data to Struct
         # _transactions_info's key: transaction_id(int type)
         self._transactions = DictDB('transactions', db, value_type=bytes)
         # _confirmations's key: transaction_id(int type), address(Address type)
@@ -167,11 +179,21 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def on_update(self) -> None:
         super().on_update()
 
-    def _is_json(self, jsons: str):
-        try:
-            json.loads(jsons)
-        except ValueError as e:
-            self.revert(f"json format error: {e}")
+    def _is_convertible_params_format(self, json_formatted_params: str):
+        # when user input None as a _params' value,
+        # this will be changed to "" when set Transaction structure
+        # "" will be changed to {} when finally execute transaction. so doesn't check format
+        if json_formatted_params != "" and json_formatted_params is not None:
+            try:
+                params = json.loads(json_formatted_params)
+                for param in params:
+                    params_type_converter(param['type'], param['value'])
+            except ValueError as e:
+                self.revert(f"json format error: {e}")
+            except IconScoreException as e:
+                self.revert(f"{e}")
+            except:
+                self.revert(f"can't convert params json data, check the format")
 
     def not_null(self, address: Address):
         #Todo: check this parts
@@ -226,11 +248,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
         # supplement from gnosis
         self.owner_exist(self.msg.sender)
-
-        # when user input "" or None as a _params' value,
-        # this will be changed to {} so doesn't check json format
-        if _params != "" and _params is not None:
-            self._is_json(_params)
+        self._is_convertible_params_format(_params)
 
         # add transaction
         transaction_id = self._add_transaction(_destination, _method, _params, _value, _description)
@@ -238,26 +256,26 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self.confirmTransaction(transaction_id)
 
     @external
-    def confirmTransaction(self, _transaction_id: int):
+    def confirmTransaction(self, _transactionId: int):
         self.owner_exist(self.msg.sender)
-        self.transaction_exists(_transaction_id)
-        self.not_confirmed(_transaction_id, self.msg.sender)
+        self.transaction_exists(_transactionId)
+        self.not_confirmed(_transactionId, self.msg.sender)
 
-        self._confirmations[_transaction_id][self.msg.sender] = True
+        self._confirmations[_transactionId][self.msg.sender] = True
         # event log
-        self.Confirmation(self.msg.sender, _transaction_id)
+        self.Confirmation(self.msg.sender, _transactionId)
 
-        self._execute_transaction(_transaction_id)
+        self._execute_transaction(_transactionId)
 
     @external
-    def revokeTransaction(self, _transaction_id: int):
+    def revokeTransaction(self, _transactionId: int):
         self.owner_exist(self.msg.sender)
-        self.confirmed(_transaction_id, self.msg.sender)
-        self.not_executed(_transaction_id)
+        self.confirmed(_transactionId, self.msg.sender)
+        self.not_executed(_transactionId)
 
-        self._confirmations[_transaction_id][self.msg.sender] = False
+        self._confirmations[_transactionId][self.msg.sender] = False
         # eventlog
-        self.Revocation(self.msg.sender, _transaction_id)
+        self.Revocation(self.msg.sender, _transactionId)
 
     def _add_transaction(self, destination: Address, method: str, params: str, value: int, description: str) ->int:
         self.not_null(destination)
@@ -268,7 +286,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                                   value=value,
                                   description=description
                                   )
-
         transaction_id = self._transaction_count
 
         self._transactions[transaction_id] = transaction.to_bytes()
@@ -296,30 +313,26 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def _external_call(self, serialized_tx: bytes)->bool:
         transaction = Transaction.from_bytes(serialized_tx)
-        # convert Address from string to Address type
 
+        # if method == "" -> None
+        method_name = None if transaction.method == "" else transaction.method
+        # if params == "" -> {}
         method_params = {}
-        if transaction.params != "" and transaction.params is not None:
+        if transaction.params != "":
             params = json.loads(transaction.params)
-
             for param in params:
-                print('param', type(param['value']))
                 method_params[param['name']] = params_type_converter(param['type'], param['value'])
 
-        print('external', transaction.method == "", method_params, transaction.value)
         try:
             if transaction.destination.is_contract:
-                print('is_contract', transaction.destination, transaction.method == None)
                 self.call(addr_to=transaction.destination,
-                          func_name=None if transaction.method == "" else transaction.method,
+                          func_name=method_name,
                           kw_dict=method_params,
                           amount=transaction.value)
             else:
-                print('is_eoa', transaction.destination)
                 self.icx.transfer(transaction.destination, transaction.value)
             execute_result = True
         except:
-            print('excepted')
             execute_result = False
 
         return execute_result

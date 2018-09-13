@@ -145,7 +145,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         self.assertEqual(response, expected_confirm_count)
 
         ## owner2를 이용하여 confirm transaction 생성
-        confirm_tx_params = {'_transaction_id': '0x00'}
+        confirm_tx_params = {'_transactionId': '0x00'}
         add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner2,
                                                        addr_to=multisig_score_addr,
                                                        method='confirmTransaction',
@@ -224,7 +224,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         self.assertEqual(response, expected_confirm_count)
 
         ## owner2를 이용하여 confirm transaction 생성
-        confirm_tx_params = {'_transaction_id': '0x01'}
+        confirm_tx_params = {'_transactionId': '0x01'}
         add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner2,
                                                        addr_to=multisig_score_addr,
                                                        method='confirmTransaction',
