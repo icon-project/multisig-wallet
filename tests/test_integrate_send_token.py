@@ -26,51 +26,15 @@ import json
 class TestIntegrateSendToken(TestIntegrateBase):
     def test_send_token(self):
         ## 시나리오.1 send 500 token to owner4
-        # deploy multisig wallet score(2to3 multisig)
-        tx1 = self._make_deploy_tx("",
-                                   "multisig_wallet",
-                                   self._addr_array[0],
-                                   ZERO_SCORE_ADDRESS,
-                                   deploy_params={"_walletOwners": str(
-                                       "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
-                                       "_required": "0x02"})
-
-        token_total_supply = 10000
-        tx2 = self._make_deploy_tx("",
-                                   "standard_token",
-                                   self._owner1,
-                                   ZERO_SCORE_ADDRESS,
-                                   deploy_params={"initialSupply": str(hex(token_total_supply)), "decimals": str(hex(0))})
-
-        prev_block, tx_results = self._make_and_req_block([tx1, tx2])
-        self._write_precommit_state(prev_block)
-
-        self.assertEqual(tx_results[0].status, int(True))
-        self.assertEqual(tx_results[1].status, int(True))
-        multisig_score_addr = tx_results[0].score_address
-        token_score_addr = tx_results[1].score_address
-
-        # 토큰 supply 확인
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": token_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "balanceOf",
-                "params": {'_owner': str(self._owner1)}
-            }
-        }
-        response = self._query(query_request)
-        self.assertEqual(response, token_total_supply)
+        multisig_score_addr, token_score_addr = self._deploy_multisig_wallet_and_token_score(token_total_supply=10000, token_owner=self._owner1)
 
         # owner1이 소유한 토큰 중 1000token 을 multisig wallet score로 전송
         transfer_tx_params = {'_to': str(multisig_score_addr), '_value': str(hex(1000))}
         add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                                        addr_to=token_score_addr,
                                                        method='transfer',
-                                                       params=transfer_tx_params
-                                                       )
+                                                       params=transfer_tx_params)
+
         prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)

@@ -8,9 +8,9 @@ import json
 #Todo: modify values
 VALUE_BYTES = 32
 ADDRESS_BYTES = 21
-METHOD_BYTES = 150
-PARAMS_BYTES = 300
-DESCRIPTION_BYTES = 300
+METHOD_BYTES = 50
+PARAMS_BYTES = 150
+DESCRIPTION_BYTES = 50
 DATA_BYTE_ORDER = 'big'
 
 
@@ -46,41 +46,21 @@ class Transaction:
     def destination(self) -> Address:
         return self._destination
 
-    @destination.setter
-    def destination(self, destination: Address):
-        self._destination = destination
-
     @property
     def method(self) -> str:
         return self._method
-
-    @method.setter
-    def method(self, method: str):
-        self._method = method
 
     @property
     def params(self) -> str:
         return self._params
 
-    @params.setter
-    def params(self, params: str):
-        self._params = params
-
     @property
     def value(self) -> int:
         return self._value
 
-    @value.setter
-    def value(self, value: str):
-        self._value = value
-
     @property
     def description(self) -> str:
         return self._description
-
-    @description.setter
-    def description(self, description: str):
-        self._description = description
 
     @staticmethod
     def from_bytes(buf: bytes):
@@ -300,11 +280,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if self._is_confirmed(transaction_id):
             txn = self._transactions[transaction_id]
             if self._external_call(txn):
-                #Todo: need refactoring
-                transaction = bytearray(self._transactions[transaction_id])
-                # change executed: False => True
-                transaction[0] = True
-                self._transactions[transaction_id] = bytes(transaction)
+                self._transactions[transaction_id] = True.to_bytes(1, 'big') + self._transactions[transaction_id][1:]
                 # event log
                 self.Execution(transaction_id)
             else:
@@ -408,7 +384,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return self._required
 
     @external(readonly=True)
-    def getTransaction_info(self, _transactionId: int) -> bytes:
+    def getTransactionInfo(self, _transactionId: int) -> bytes:
         #Todo: need to be changed: return informative data
         return self._transactions[_transactionId]
 

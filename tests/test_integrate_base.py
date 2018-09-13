@@ -23,8 +23,10 @@ from typing import TYPE_CHECKING, Union, Optional, Any
 from iconcommons import IconConfig
 from iconservice.base.block import Block
 from iconservice.icon_config import default_icon_config
+from iconservice.base.address import ZERO_SCORE_ADDRESS
 from iconservice.icon_constant import ConfigKey
 from iconservice.icon_service_engine import IconServiceEngine
+from iconservice.base.address import Address
 from tests import create_address, create_tx_hash, create_block_hash
 from tests import root_clear, create_timestamp, get_score_path
 from tests.in_memory_zip import InMemoryZip
@@ -53,7 +55,6 @@ class TestIntegrateBase(TestCase):
         cls._owner2: 'Address' = create_address()
         cls._owner3: 'Address' = create_address()
         cls._owner4: 'Address' = create_address()
-
 
         cls._addr_array = [create_address() for _ in range(10)]
 
@@ -140,6 +141,125 @@ class TestIntegrateBase(TestCase):
         self._prev_block_hash = block_hash
 
         return invoke_response
+
+    #Todo: need to be refactoring
+    def _deploy_multisig_wallet(self):
+        tx1 = self._make_deploy_tx("",
+                                   "multisig_wallet",
+                                   self._addr_array[0],
+                                   ZERO_SCORE_ADDRESS,
+                                   deploy_params={"_walletOwners": str(
+                                       "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
+                                       "_required": "0x02"})
+
+        prev_block, tx_results = self._make_and_req_block([tx1])
+        self._write_precommit_state(prev_block)
+
+        self.assertEqual(tx_results[0].status, int(True))
+        multisig_score_addr = tx_results[0].score_address
+
+        # 3명의 owner가 정상적으로 들어갔는지 확인(get_owners)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr ,
+            "dataType": "call",
+            "data": {
+                "method": "getWalletOwners",
+                "params": {"_from": "0", "_to": "10"}
+            }
+        }
+        response = self._query(query_request)
+        expected_owners = [self._owner1, self._owner2, self._owner3]
+        self.assertEqual(response, expected_owners)
+
+        # requirements가 정상적으로 들어갔는 지 확인(get_requirements)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getRequirements",
+                "params": {}
+            }
+        }
+        response = self._query(query_request)
+        expected_requirements = 2
+        self.assertEqual(response, expected_requirements)
+
+        return multisig_score_addr
+
+    # Todo: need to be refactoring
+    def _deploy_multisig_wallet_and_token_score(self, token_total_supply:int, token_owner: Address):
+        tx1 = self._make_deploy_tx("",
+                                   "multisig_wallet",
+                                   self._addr_array[0],
+                                   ZERO_SCORE_ADDRESS,
+                                   deploy_params={"_walletOwners": str(
+                                       "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
+                                       "_required": "0x02"})
+
+        tx2 = self._make_deploy_tx("",
+                                   "standard_token",
+                                   token_owner,
+                                   ZERO_SCORE_ADDRESS,
+                                   deploy_params={"initialSupply": str(hex(token_total_supply)),
+                                                  "decimals": str(hex(0))})
+
+        prev_block, tx_results = self._make_and_req_block([tx1, tx2])
+        self._write_precommit_state(prev_block)
+
+        self.assertEqual(tx_results[0].status, int(True))
+        self.assertEqual(tx_results[1].status, int(True))
+        multisig_score_addr = tx_results[0].score_address
+        token_score_addr = tx_results[1].score_address
+
+        # 3명의 owner가 정상적으로 들어갔는지 확인(get_owners)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getWalletOwners",
+                "params": {"_from": "0", "_to": "10"}
+            }
+        }
+        response = self._query(query_request)
+        expected_owners = [self._owner1, self._owner2, self._owner3]
+        self.assertEqual(response, expected_owners)
+
+        # requirements가 정상적으로 들어갔는 지 확인(get_requirements)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getRequirements",
+                "params": {}
+            }
+        }
+        response = self._query(query_request)
+        expected_requirements = 2
+        self.assertEqual(response, expected_requirements)
+
+        # 토큰 supply 확인
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(token_owner)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(response, token_total_supply)
+
+        return multisig_score_addr, token_score_addr
 
     def _make_deploy_tx(self, score_root: str,
                         score_name: str,

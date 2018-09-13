@@ -15,63 +15,17 @@
 # limitations under the License.
 
 import unittest
+import json
 
 from iconservice.base.address import ZERO_SCORE_ADDRESS
 from tests.test_integrate_base import TestIntegrateBase
 from iconservice.base.address import Address
 
 
-import json
-
 class TestIntegrateMultiSigWallet(TestIntegrateBase):
-
     def test_multisig_wallet(self):
         ## 시나리오.1 add owner
-        #deploy multisig wallet score(2to3 multisig)
-        tx1 = self._make_deploy_tx("",
-                                   "multisig_wallet",
-                                   self._addr_array[0],
-                                   ZERO_SCORE_ADDRESS,
-                                   deploy_params={"_walletOwners": str(
-                                       "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
-                                       "_required": "0x02"})
-
-
-        prev_block, tx_results = self._make_and_req_block([tx1])
-        self._write_precommit_state(prev_block)
-
-        self.assertEqual(tx_results[0].status, int(True))
-        multisig_score_addr = tx_results[0].score_address
-
-        # 3명의 owner가 정상적으로 들어갔는지 확인(get_owners)
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": multisig_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "getWalletOwners",
-                "params": {"_from":"0","_to":"10"}
-            }
-        }
-        response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3]
-        self.assertEqual(response, expected_owners)
-
-        # requirements가 정상적으로 들어갔는 지 확인(get_requirements)
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": multisig_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "getRequirements",
-                "params": {}
-            }
-        }
-        response = self._query(query_request)
-        expected_requirements = 2
-        self.assertEqual(response, expected_requirements)
+        multisig_score_addr = self._deploy_multisig_wallet_score()
 
         # owner1을 이용하여 submitTransaction을 진행(add owner), 실제 add owner가 처리되었는지 체크
         add_owner_params = [
@@ -119,7 +73,7 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        print('multisig',multisig_score_addr)
+        print('multisig', multisig_score_addr)
 
         # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 2)
         query_request = {
@@ -164,6 +118,5 @@ class TestIntegrateMultiSigWallet(TestIntegrateBase):
         }
         response = self._query(query_request)
         expected_owners = [self._owner1, self._owner2, self._owner3, self._owner4]
-        print(response)
         self.assertEqual(response, expected_owners)
 

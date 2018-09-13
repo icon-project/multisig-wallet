@@ -15,12 +15,11 @@
 # limitations under the License.
 
 import unittest
+import json
 
 from iconservice.base.address import ZERO_SCORE_ADDRESS
 from tests.test_integrate_base import TestIntegrateBase
 from iconservice.base.address import Address
-
-import json
 
 
 class TestIntegrateSendIcx(TestIntegrateBase):
@@ -28,59 +27,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
     def test_send_icx(self):
         ## 시나리오.1 send icx to owner4 500 t
         # deploy multisig wallet score(2to3 multisig)
-        tx1 = self._make_deploy_tx("",
-                                   "multisig_wallet",
-                                   self._addr_array[0],
-                                   ZERO_SCORE_ADDRESS,
-                                   deploy_params={"_walletOwners": str(
-                                       "%s,%s,%s" % (str(self._owner1), str(self._owner2), str(self._owner3))),
-                                       "_required": "0x02"})
-
-        # deploy token score for receive icx
-        token_total_supply = 10000
-        tx2 = self._make_deploy_tx("",
-                                   "standard_token",
-                                   self._owner1,
-                                   ZERO_SCORE_ADDRESS,
-                                   deploy_params={"initialSupply": str(hex(token_total_supply)), "decimals": str(hex(0))})
-
-        prev_block, tx_results = self._make_and_req_block([tx1, tx2])
-        self._write_precommit_state(prev_block)
-
-        self.assertEqual(tx_results[0].status, int(True))
-        self.assertEqual(tx_results[1].status, int(True))
-        multisig_score_addr = tx_results[0].score_address
-        token_score_addr = tx_results[1].score_address
-
-        # 3명의 owner가 정상적으로 들어갔는지 확인(get_owners)
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": multisig_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "getWalletOwners",
-                "params": {"_from": "0","_to": "10"}
-            }
-        }
-        response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3]
-        self.assertEqual(response, expected_owners)
-
-        # requirements가 정상적으로 들어갔는 지 확인(get_requirements)
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": multisig_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "getRequirements",
-                "params": {}
-            }
-        }
-        response = self._query(query_request)
-        expected_requirements = 2
-        self.assertEqual(response, expected_requirements)
+        multisig_score_addr, token_score_addr = self._deploy_multisig_wallet_and_token_score(token_total_supply=10000, token_owner=self._owner1)
 
         # 해당 contract에 10000 icx를 예치한 후 및 예치된 금액 확인
         send_icx_value = 10000
