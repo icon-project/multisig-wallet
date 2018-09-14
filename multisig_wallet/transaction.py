@@ -81,12 +81,13 @@ class Transaction:
 
     @staticmethod
     def from_bytes(buf: bytes):
+        transaction_executed = buf[0]
         struct_format_len = buf[1]
         struct_format = buf[2:struct_format_len + 2].decode()
 
         destination, method, params, value, description = unpack(struct_format, buf[struct_format_len + 2:])
 
-        return Transaction(executed=buf[0],
+        return Transaction(executed=transaction_executed,
                            destination=Address.from_bytes(destination),
                            method=method.decode(encoding="utf-8"),
                            params=params.decode(encoding="utf-8"),

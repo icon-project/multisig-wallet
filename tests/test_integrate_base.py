@@ -55,6 +55,8 @@ class TestIntegrateBase(TestCase):
         cls._owner2: 'Address' = create_address()
         cls._owner3: 'Address' = create_address()
         cls._owner4: 'Address' = create_address()
+        cls._owner5: 'Address' = create_address()
+        cls._owner6: 'Address' = create_address()
 
         cls._addr_array = [create_address() for _ in range(10)]
 

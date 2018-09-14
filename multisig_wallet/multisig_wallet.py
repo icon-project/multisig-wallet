@@ -113,7 +113,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         #Todo: check this parts
         hx_null = Address.from_string("hx0000000000000000000000000000000000000000")
         cx_null = Address.from_string("cx0000000000000000000000000000000000000000")
-        if address== hx_null or address == cx_null:
+        if address == hx_null or address == cx_null:
             self.revert("invalid address")
 
     def wallet_owner_does_not_exist(self, wallet_owner: Address):
@@ -277,6 +277,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def replaceWalletOwner(self, _walletOwner: Address, _newWalletOwner: Address):
         self.wallet_owner_exist(_walletOwner)
         self.wallet_owner_does_not_exist(_newWalletOwner)
+        self.not_null(_newWalletOwner)
 
         for idx, wallet_owner in enumerate(self._wallet_owners):
             if wallet_owner == _walletOwner:
@@ -298,9 +299,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # so check if _owner is only one left in this wallet
         self.valid_requirement(len(self._wallet_owners) - 1, self._required)
 
-        for idx, wallet_owner in enumerate(self._wallet_owners):
-            if wallet_owner == _walletOwner:
-                self._wallet_owners[idx] = self._wallet_owners.pop()
+        for idx, owner in enumerate(self._wallet_owners):
+            if owner == _walletOwner:
+                if idx == len(self._wallet_owners)-1:
+                    self._wallet_owners.pop()
+                else:
+                    self._wallet_owners[idx] = self._wallet_owners.pop()
                 break
 
         del self._is_wallet_owner[_walletOwner]
@@ -316,7 +320,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # event log
         self.RequirementChange(_required)
 
-    #TODO: check external readonly method need to check params' data
     @external(readonly=True)
     def getRequirements(self) -> int:
         return self._required
