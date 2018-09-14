@@ -1,90 +1,26 @@
-from iconservice import *
-from .type_converter.type_converter import params_type_converter
-from .qualification_check.qualification_check import *
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 ICON Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from struct import Struct, pack, unpack
 import json
 
-#Todo: modify values
-VALUE_BYTES = 32
-ADDRESS_BYTES = 21
-METHOD_BYTES = 50
-PARAMS_BYTES = 150
-DESCRIPTION_BYTES = 50
-DATA_BYTE_ORDER = 'big'
-
-
-class Transaction:
-    _struct = \
-        Struct(f'>?x{ADDRESS_BYTES}sx{METHOD_BYTES}sx{PARAMS_BYTES}sx{VALUE_BYTES}sx{DESCRIPTION_BYTES}s')
-
-    def __init__(self,
-                 destination: Address,
-                 method: str,
-                 params: str,
-                 value: int,
-                 description: str,
-                 executed: bool=False):
-
-        self._executed = executed
-        self._destination = destination
-        # as None type can't be converted to bytes, must be changed to ""
-        self._method = "" if method is None else method
-        self._params = "" if params is None else params
-        self._value = value
-        self._description = description
-
-    @property
-    def executed(self) -> bool:
-        return self._executed
-
-    @executed.setter
-    def executed(self, executed: bool):
-        self._executed = executed
-
-    @property
-    def destination(self) -> Address:
-        return self._destination
-
-    @property
-    def method(self) -> str:
-        return self._method
-
-    @property
-    def params(self) -> str:
-        return self._params
-
-    @property
-    def value(self) -> int:
-        return self._value
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @staticmethod
-    def from_bytes(buf: bytes):
-        executed, destination, method, params, value, description = \
-            Transaction._struct.unpack(buf)
-
-        return Transaction(executed=bool(executed),
-                           destination=Address.from_bytes(destination.strip(b'\x00')),
-                           method=method.strip(b'\x00').decode(encoding="utf-8"),
-                           params=params.strip(b'\x00').decode(encoding="utf-8"),
-                           value=int.from_bytes(value, DATA_BYTE_ORDER),
-                           description=description.strip(b'\x00').decode(encoding="utf-8"))
-
-    def to_bytes(self) -> bytes:
-        transaction = Transaction._struct.pack\
-            (self._executed,
-             self._destination.to_bytes(),
-             self._method.encode(encoding="utf-8"),
-             self._params.encode(encoding="utf-8"),
-             #Todo: need to be refactoring
-             self._value.to_bytes(VALUE_BYTES, DATA_BYTE_ORDER),
-             self._description.encode(encoding="utf-8"))
-        print(transaction)
-        return transaction
+from iconservice import *
+from .type_converter.type_converter import params_type_converter
+from .qualification_check.qualification_check import *
+from .transaction import Transaction
 
 
 class MultiSigWallet(IconScoreBase, IconScoreException):
@@ -201,6 +137,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             self.revert(f"{wallet_owner} has already confirmed to transaction '{transation_id}'")
 
     def not_executed(self, transaction_id: int):
+        # before call this method, check if transaction is exists(use transaction_exists method)
         if self._transactions[transaction_id][0] is True:
             self.revert(f"transaction id '{transaction_id}' has already executed")
 
@@ -391,7 +328,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external(readonly=True)
     def getTransactionsExecuted(self, _transactionId: int) -> bool:
-        return self._transactions[_transactionId][0]
+        if self._transactions[_transactionId] is not None:
+            return self._transactions[_transactionId][0]
+        else:
+            return None
 
     @external(readonly=True)
     def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
@@ -429,6 +369,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @external(readonly=True)
     def getTransactionCount(self, _pending: bool, _executed: bool)-> int:
         tx_count = 0
+
         for tx_id in range(self._transaction_count):
             if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
                 tx_count += 1
@@ -438,6 +379,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @external(readonly=True)
     def getTransactionIds(self, _from: int, _to: int, _pending: bool, _executed: bool)-> list:
         transaction_ids = []
+
+        # prevent searching not existed transaction
+        _to = _to if self._transaction_count > _to else self._transaction_count
+
         for tx_id in range(_from, _to):
             if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
                 transaction_ids.append(tx_id)
