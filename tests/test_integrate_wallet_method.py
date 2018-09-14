@@ -14,12 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 import json
 
-from iconservice.base.address import ZERO_SCORE_ADDRESS
 from tests.test_integrate_base import TestIntegrateBase
-from iconservice.base.address import Address
 
 
 class TestIntegrateWalletMethod(TestIntegrateBase):

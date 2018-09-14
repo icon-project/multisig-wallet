@@ -14,99 +14,79 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-import json
-
-from iconservice.base.address import ZERO_SCORE_ADDRESS
 from tests.test_integrate_base import TestIntegrateBase
-from iconservice.base.address import Address
+
 
 
 class TestIntegrateSendIcx(TestIntegrateBase):
+    def setUp(self):
+        super().setUp()
+        self.multisig_score_addr, self.token_score_addr = \
+            self._deploy_multisig_wallet_and_token_score(token_total_supply=10000, token_owner=self._owner1)
 
-    def test_send_icx(self):
-        ## 시나리오.1 send icx to owner4 500 t
-        # deploy multisig wallet score(2to3 multisig)
-        multisig_score_addr, token_score_addr = self._deploy_multisig_wallet_and_token_score(token_total_supply=10000, token_owner=self._owner1)
-
-        # 해당 contract에 10000 icx를 예치한 후 및 예치된 금액 확인
-        send_icx_value = 10000
+    def deposit_icx_to_multisig_score(self, value:int):
+        send_icx_value = value
         icx_send_tx = self._make_icx_send_tx(self._genesis,
-                                             multisig_score_addr,
+                                             self.multisig_score_addr,
                                              send_icx_value)
 
         prev_block, tx_results = self._make_and_req_block([icx_send_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(tx_results[0].status, int(True))
-        query_request = {
-            "address": multisig_score_addr
-        }
 
+        # check if icx is deposited to multisig wallet successfully
+        query_request = {
+            "address": self.multisig_score_addr
+        }
         response = self._query(query_request, 'icx_getBalance')
-        self.assertEqual(response, send_icx_value)
+        self.assertEqual(send_icx_value, response)
 
-        # 현재 owner4의 잔액 확인 (should be 0)
-        query_request = {
-            "address": self._owner4
-        }
+    def test_send_icx_to_score(self):
+        # success case: send icx to SCORE(token score)
 
-        response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(response, 0)
+        # deposit 10000icx to wallet SCORE
+        send_icx_value = 10000
+        self.deposit_icx_to_multisig_score(send_icx_value)
 
-        # owner1을 이용하여 submitTransaction을 진행(send 10 icx to SCORE)
-        submit_tx_params = {'_destination': str(token_score_addr),
+        # submit transaction which send 10 icx to token score
+        submit_tx_params = {'_destination': str(self.token_score_addr),
                             '_method': "",
                             '_params': "",
                             '_description': 'send 10 icx to token score',
                             '_value': '0x0a'}
 
-        add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
-                                                       addr_to=multisig_score_addr,
-                                                       method='submitTransaction',
-                                                       params=submit_tx_params
-                                                       )
-        prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                             addr_to=self.multisig_score_addr,
+                                             method='submitTransaction',
+                                             params=submit_tx_params
+                                             )
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(tx_results[0].status, int(True))
 
-        # token score의 icx 잔액 확인(should be 0)
+        # check token score icx (should be 0)
         query_request = {
-            "address": token_score_addr
+            "address": self.token_score_addr
         }
         response = self._query(query_request, "icx_getBalance")
         self.assertEqual(response, 0)
 
-        # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 1)
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": multisig_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "getConfirmationCount",
-                "params": {'_transactionId': "0x00"}
-            }
-        }
-        response = self._query(query_request)
-        expected_confirm_count = 1
-        self.assertEqual(response, expected_confirm_count)
-
-        ## owner2를 이용하여 confirm transaction 생성
+        # confirm transaction
         confirm_tx_params = {'_transactionId': '0x00'}
-        add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner2,
-                                                       addr_to=multisig_score_addr,
-                                                       method='confirmTransaction',
-                                                       params=confirm_tx_params
-                                                       )
-        prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
+                                              addr_to=self.multisig_score_addr,
+                                              method='confirmTransaction',
+                                              params=confirm_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 2)
+        # check getConfirmationCount(should be 2)
         query_request = {
             "version": self._version,
             "from": self._admin,
-            "to": multisig_score_addr,
+            "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
@@ -117,95 +97,93 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         expected_confirm_count = 2
         self.assertEqual(response, expected_confirm_count)
 
+        # check the token score address' icx
         query_request = {
-            "address": token_score_addr
+            "address": self.token_score_addr
+        }
+
+        expected_token_score_icx = 10
+        actual_token_score_icx = self._query(query_request, "icx_getBalance")
+        self.assertEqual(expected_token_score_icx, actual_token_score_icx)
+
+        # check multisig wallet score's icx(should be 9990)
+        query_request = {
+            "address": self.multisig_score_addr
         }
         response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(response, 10)
+        self.assertEqual(9990, response)
 
-        # multisig wallet score의 icx 잔액 확인(should be 9990)
-        query_request = {
-            "address": multisig_score_addr
-        }
-        response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(response, 9990)
+    def test_send_icx_to_eoa(self):
+        # success case: send icx to eoa(owner4)
 
-        ############################send icx to EOA###########################
+        # deposit 10000icx to wallet SCORE
+        send_icx_value = 10000
+        self.deposit_icx_to_multisig_score(send_icx_value)
 
-        ## owner1을 이용하여 submitTransaction을 진행(send 10 icx to owner4)
+        # submit transaction which send 10 icx to owner4
         submit_tx_params = {'_destination': str(self._owner4),
-                            '_method': '',
-                            '_params': '',
-                            '_description': 'send 10 icx to owner4 ',
+                            '_method': "",
+                            '_params': "",
+                            '_description': 'send 10 icx to owner4',
                             '_value': '0x0a'}
 
-        add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
-                                                       addr_to=multisig_score_addr,
-                                                       method='submitTransaction',
-                                                       params=submit_tx_params
-                                                       )
-        prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                             addr_to=self.multisig_score_addr,
+                                             method='submitTransaction',
+                                             params=submit_tx_params
+                                             )
+
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(tx_results[0].status, int(True))
 
-        # owner4의 icx 잔액 확인(should be 0)
+        # check token owner4 (should be 0)
         query_request = {
             "address": self._owner4
         }
         response = self._query(query_request, "icx_getBalance")
         self.assertEqual(response, 0)
 
-        # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 1)
-        query_request = {
-            "version": self._version,
-            "from": self._admin,
-            "to": multisig_score_addr,
-            "dataType": "call",
-            "data": {
-                "method": "getConfirmationCount",
-                "params": {'_transactionId': "0x01"}
-            }
-        }
-        response = self._query(query_request)
-        expected_confirm_count = 1
-        self.assertEqual(response, expected_confirm_count)
-
-        ## owner2를 이용하여 confirm transaction 생성
-        confirm_tx_params = {'_transactionId': '0x01'}
-        add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner2,
-                                                       addr_to=multisig_score_addr,
-                                                       method='confirmTransaction',
-                                                       params=confirm_tx_params
-                                                       )
-        prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
+        # confirm transaction
+        confirm_tx_params = {'_transactionId': '0x00'}
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
+                                              addr_to=self.multisig_score_addr,
+                                              method='confirmTransaction',
+                                              params=confirm_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        # 정상 등록되었는지 getConfirmationCount를 실행하여 체크(should be 2)
+        # check getConfirmationCount(should be 2)
         query_request = {
             "version": self._version,
             "from": self._admin,
-            "to": multisig_score_addr,
+            "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {'_transactionId': "0x01"}
+                "params": {'_transactionId': "0x00"}
             }
         }
         response = self._query(query_request)
         expected_confirm_count = 2
         self.assertEqual(response, expected_confirm_count)
 
-        # owner4의 icx 잔액 확인(should be 10)
+        # check the owner4's icx
         query_request = {
             "address": self._owner4
         }
-        response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(response, 10)
 
-        # multisig wallet score의 icx 잔액 확인(should be 9980)
+        expected_owner4_icx = 10
+        actual_owner4_icx = self._query(query_request, "icx_getBalance")
+        self.assertEqual(expected_owner4_icx, actual_owner4_icx)
+
+        # check multisig wallet score's icx(should be 9990)
         query_request = {
-            "address": multisig_score_addr
+            "address": self.multisig_score_addr
         }
         response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(response, 9980)
+        self.assertEqual(9990, response)
+
+
