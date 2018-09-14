@@ -39,12 +39,12 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
                             '_params': json.dumps(change_requirement_params),
                             '_description': 'change requirements 2 to 3'}
 
-        valid_tx = self._make_score_call_tx(addr_from=self._owner1,
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                             addr_to=self.multisig_score_addr,
                                             method='submitTransaction',
                                             params=submit_tx_params
                                             )
-        prev_block, tx_results = self._make_and_req_block([valid_tx])
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 

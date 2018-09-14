@@ -14,12 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 import json
 
-from iconservice.base.address import ZERO_SCORE_ADDRESS
 from tests.test_integrate_base import TestIntegrateBase
-from iconservice.base.address import Address
 
 
 class TestIntegrateConfirmTransaction(TestIntegrateBase):
@@ -39,13 +36,13 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
                             '_params': json.dumps(change_requirement_params),
                             '_description': 'change requirements from 2 to 3'}
 
-        valid_tx1 = self._make_score_call_tx(addr_from=self._owner1,
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
                                              method='submitTransaction',
                                              params=submit_tx_params
                                              )
 
-        prev_block, tx_results = self._make_and_req_block([valid_tx1])
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
@@ -155,13 +152,13 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
                             '_params': json.dumps(change_requirement_params),
                             '_description': 'change requirements from 2 to 3'}
 
-        valid_tx1 = self._make_score_call_tx(addr_from=self._owner1,
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
                                              method='submitTransaction',
                                              params=submit_tx_params
                                              )
 
-        prev_block, tx_results = self._make_and_req_block([valid_tx1])
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
@@ -180,7 +177,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         expected_confirm_count = 1
         self.assertEqual(expected_confirm_count, actual_confirm_count)
 
-        # failure case: try confirmation using already confirmed owner(owner1)
+        # failure case: try to confirm using already confirmed owner(owner1)
         confirmed_owner = self._owner1
         confirm_tx_params = {'_transactionId': '0x00'}
         confirm_tx = self._make_score_call_tx(addr_from=confirmed_owner,
@@ -230,18 +227,18 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
              'type': 'int',
              'value': 3}
         ]
-        submit_invalid_tx_params = {'_destination': str(self.multisig_score_addr),
-                                    '_method': 'changeRequirement',
-                                    '_params': json.dumps(change_requirement_params),
-                                    '_description': 'change requirements from 2 to 3'}
+        submit_tx_params = {'_destination': str(self.multisig_score_addr),
+                            '_method': 'changeRequirement',
+                            '_params': json.dumps(change_requirement_params),
+                            '_description': 'change requirements from 2 to 3'}
 
-        valid_tx1 = self._make_score_call_tx(addr_from=self._owner1,
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
                                              method='submitTransaction',
-                                             params=submit_invalid_tx_params
+                                             params=submit_tx_params
                                              )
 
-        prev_block, tx_results = self._make_and_req_block([valid_tx1])
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
@@ -265,25 +262,25 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         # failure case: if confirmed transaction is not valid(e.g. invalid method name),
         # should be failed but confirm count should be 2.
 
-        # submit invalid transaction
+        # submit invalid transaction(invalid method name)
         invalid_method_name = 'invalid_method_name'
-        change_requirement_params = [
+        params = [
             {'name': '_required',
              'type': 'int',
              'value': 3}
         ]
         submit_tx_params = {'_destination': str(self.multisig_score_addr),
                             '_method': invalid_method_name,
-                            '_params': json.dumps(change_requirement_params),
+                            '_params': json.dumps(params),
                             '_description': 'change requirements from 2 to 3'}
 
-        valid_tx1 = self._make_score_call_tx(addr_from=self._owner1,
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
                                              method='submitTransaction',
                                              params=submit_tx_params
                                              )
 
-        prev_block, tx_results = self._make_and_req_block([valid_tx1])
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
