@@ -105,7 +105,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([invalid_tx])
         self._write_precommit_state(prev_block)
 
-        expected_revert_massage = "can't convert params json data, check the format"
+        expected_revert_massage = "can't convert 'params' json data, check the 'params' parameter"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
@@ -130,7 +130,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([valid_tx])
         self._write_precommit_state(prev_block)
 
-        expected_revert_massage = f'{self._owner4} is not a owner of wallet'
+        expected_revert_massage = f'{self._owner4} is not an owner of wallet'
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
