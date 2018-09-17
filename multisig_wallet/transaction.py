@@ -14,12 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from iconservice import *
-
 from struct import pack, unpack
 
+from iconservice import *
+
+
 DEFAULT_VALUE_BYTES = 32
-DATA_BYTE_ORDER = 'big'
+DATA_BYTE_ORDER = "big"
 
 
 class Transaction:
@@ -39,9 +40,9 @@ class Transaction:
         self._value = value
         self._description = description
         # struct_format will be used when decode serialized transaction data
-        self._struct_format = self._make_sturct_format()
+        self._struct_format = self._make_struct_format()
 
-    def _make_sturct_format(self):
+    def _make_struct_format(self):
         #todo: check length of each params, in this method, restrict length of data
         destination_len = len(self._destination.to_bytes())
         method_len = len(self._method.encode())
