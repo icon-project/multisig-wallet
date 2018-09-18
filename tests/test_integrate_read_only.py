@@ -27,7 +27,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
     def test_get_transaction_ids(self):
         # success case: get transaction ids
         submit_txs = []
-        for idx in range(0,50):
+        for idx in range(0, 50):
             change_requirement_params = [
                 {'name': '_required',
                  'type': 'int',

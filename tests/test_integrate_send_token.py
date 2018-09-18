@@ -26,7 +26,7 @@ class TestIntegrateSendToken(TestIntegrateBase):
             self._deploy_multisig_wallet_and_token_score(token_total_supply=10000, token_owner=self._owner1)
 
     def test_send_token(self):
-        # send 500 token to owner4
+        # success case: send 500 token to owner4
         # deposit owner1's 1000 token to multisig wallet score
         transfer_tx_params = {'_to': str(self.multisig_score_addr), '_value': str(hex(1000))}
         confirm_tx = self._make_score_call_tx(addr_from=self._owner1,

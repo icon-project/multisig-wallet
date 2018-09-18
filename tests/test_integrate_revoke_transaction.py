@@ -45,7 +45,7 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        # success_case: revoke using confirmed wallet owner
+        # success case: revoke using confirmed wallet owner
         confirmed_owner = self._owner1
         confirm_tx_params = {'_transactionId': '0x00'}
         confirm_tx = self._make_score_call_tx(addr_from=confirmed_owner,

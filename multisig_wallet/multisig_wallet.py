@@ -215,12 +215,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def _execute_transaction(self, transaction_id: int):
         # as this method can't be called from other SCORE or EOA, doesn't check owner, transactions_id, confirmations.
         if self._is_confirmed(transaction_id):
-            txn = self._transactions[transaction_id]
-            if self._external_call(txn):
+            if self._external_call(self._transactions[transaction_id]):
                 self._transactions[transaction_id] = True.to_bytes(1, 'big') + self._transactions[transaction_id][1:]
+
                 self.Execution(transaction_id)
             else:
-
                 self.ExecutionFailure(transaction_id)
 
     def _external_call(self, serialized_tx: bytes)->bool:

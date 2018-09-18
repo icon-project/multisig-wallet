@@ -272,7 +272,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         submit_tx_params = {'_destination': str(self.multisig_score_addr),
                             '_method': invalid_method_name,
                             '_params': json.dumps(params),
-                            '_description': 'change requirements from 2 to 3'}
+                            '_description': 'invalid_method_name'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
