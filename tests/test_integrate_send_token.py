@@ -75,6 +75,7 @@ class TestIntegrateSendToken(TestIntegrateBase):
              'type': 'int',
              'value': 500}
         ]
+        #todo: exception case bool, 500
 
         # submit transaction
         submit_tx_params = {'_destination': str(self.token_score_addr),

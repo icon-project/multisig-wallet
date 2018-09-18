@@ -24,16 +24,21 @@ The number of approvals of the wallet owner required for the Transaction to actu
 
 First step is deploying multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement.  For examples, if you want to use wallet which set three wallet owners and needs two confirmations for executing a transaction(2 to 3), you have to input two parameters 1) three wallet addresses of string,  2) required '2' when deploying wallet
 
-(e.g. "_walletOwners": "hx4fd1~, hx9f31~, hxbf9~", "_required": "2")
+```json
+{
+    "_walletOwners": "hx4fd1~, hx9f31~, hxbf9~",
+ 	"_required": "2"
+}
+```
 
 After deploying wallet, wallet owners can deposit ICX and tokens(simply 'send icx' and 'transfer' token to wallet) and manage it. When using funds or changing Internally set conditions, use ```submitTransaction``` method. For example, if you want to send 10 ICX to specific address, call ```submitTransaction``` with ballow parameters.
 ```json
 {
-    '_destination': "hx43fe2~",
- 	'_method': "",
-    '_params': "",
-    '_description': 'send 10 icx to token score',
-    '_value': '0x0a'
+    "_destination": "hx43fe2~",
+ 	"_method": "",
+    "_params": "",
+    "_description": "send 10 icx to token score",
+    "_value": "0x0a"
 }
 ```
 After the transaction is registered, other wallet owners can confirm to this transaction using ```confirmTransaction``` method, and if the number of confirmations meets 'requrement', finally 'sending 10 icx' is executed. all transactions' information is saved in wallet eternally.
@@ -42,55 +47,82 @@ After the transaction is registered, other wallet owners can confirm to this tra
 
 ### Methods(Read-only)
 
-ballow is list of read-only method. by calling these method, you can get information of wallet.
+Ballow is list of read-only method. by calling these method, you can get information of wallet.
 
 #### getRequirements
+
+Returns the requirements.
+
 ```python
 @external(readonly=True)
 def getRequirements(self) -> int:
 ```
 
 #### getTransactionInfo
+
+Returns the transaction data for each id which is serialized.
+
 ```python
 @external(readonly=True)
 def getTransactionInfo(self, _transactionId: int) -> bytes:
 ```
 
 #### getTransactionsExecuted
+
+Returns boolean which shows whether transaction is executed or not.
+
 ```python
 @external(readonly=True)
 def getTransactionsExecuted(self, _transactionId: int) -> bool:
 ```
 
 ####  checkIsWalletOwner
+
+Return boolean which shows whether address is wallet owner or not.
+
 ```python
 @external(readonly=True)
 def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
 ```
 
 #### getWalletOwners
+
+Return list of wallet owners.
+
 ```python
 @external(readonly=True)
 def getWalletOwners(self, _from: int, _to: int)-> list:
 ```
 
 #### getConfirmationCount
+
+Return each transactions' confirmation count.
+
 ```python
 @external(readonly=True)
 def getConfirmationCount(self, _transactionId: int)-> int:
 ```
 
 #### getConfirmations
+
+Return list of wallet owner who have been confirmed to the transaction.
+
 ```python
 @external(readonly=True)
 def getConfirmations(self, _from: int, _to: int, _transactionId: int)-> list:
 ```
 #### getTransactionCount
+
+Return total number of transactions which is submitted in the wallet.
+
 ```python
 @external(readonly=True)
 def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
 ```
 #### getTransactionIds
+
+Return list of transaction ids.
+
 ```python
 @external(readonly=True)
 def getTransactionIds(self, _from: int, _to: int, _pending: bool=True, _executed: bool=True)-> list:
@@ -211,3 +243,4 @@ def RequirementChange(self, _required: int):
 
 ## References
 * [https://github.com/gnosis/MultiSigWallet](https://github.com/gnosis/MultiSigWallet)
+

@@ -160,7 +160,7 @@ class TestIntegrateBase(TestCase):
         self.assertEqual(tx_results[0].status, int(True))
         multisig_score_addr = tx_results[0].score_address
 
-        # 3명의 owner가 정상적으로 들어갔는지 확인(get_owners)
+        # check wallet owners
         query_request = {
             "version": self._version,
             "from": self._admin,
@@ -175,7 +175,7 @@ class TestIntegrateBase(TestCase):
         expected_owners = [self._owner1, self._owner2, self._owner3]
         self.assertEqual(response, expected_owners)
 
-        # requirements가 정상적으로 들어갔는 지 확인(get_requirements)
+        # check requirements
         query_request = {
             "version": self._version,
             "from": self._admin,
@@ -217,7 +217,7 @@ class TestIntegrateBase(TestCase):
         multisig_score_addr = tx_results[0].score_address
         token_score_addr = tx_results[1].score_address
 
-        # 3명의 owner가 정상적으로 들어갔는지 확인(get_owners)
+        # check wallet owners
         query_request = {
             "version": self._version,
             "from": self._admin,
@@ -232,7 +232,7 @@ class TestIntegrateBase(TestCase):
         expected_owners = [self._owner1, self._owner2, self._owner3]
         self.assertEqual(response, expected_owners)
 
-        # requirements가 정상적으로 들어갔는 지 확인(get_requirements)
+        # check requirements
         query_request = {
             "version": self._version,
             "from": self._admin,
@@ -247,7 +247,7 @@ class TestIntegrateBase(TestCase):
         expected_requirements = 2
         self.assertEqual(response, expected_requirements)
 
-        # 토큰 supply 확인
+        # check token supply
         query_request = {
             "version": self._version,
             "from": self._admin,

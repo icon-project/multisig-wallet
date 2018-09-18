@@ -70,15 +70,15 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         super().__init__(db)
         # store transaction data as a bytes
         # _transactions's key: transaction_id(int type)
-        self._transactions = DictDB('transactions', db, value_type=bytes)
+        self._transactions = DictDB("transactions", db, value_type=bytes)
         # store wallet owners' confirmations of each transaction
         # _confirmations's key: transaction_id(int type), address(Address type)
-        self._confirmations = DictDB('confirmations', db, value_type=bool, depth=2)
+        self._confirmations = DictDB("confirmations", db, value_type=bool, depth=2)
         # _is_wallet_owner's key: address(Address type)
-        self._is_wallet_owner = DictDB('is_wallet_owner', db, value_type=bool)
-        self._wallet_owners = ArrayDB('wallet_owners', db, value_type=Address)
-        self._required = VarDB('required', db, value_type=int)
-        self._transaction_count = VarDB('transactionCount', db, value_type=int)
+        self._is_wallet_owner = DictDB("is_wallet_owner", db, value_type=bool)
+        self._wallet_owners = ArrayDB("wallet_owners", db, value_type=Address)
+        self._required = VarDB("required", db, value_type=int)
+        self._transaction_count = VarDB("transactionCount", db, value_type=int)
 
     def on_install(self, _walletOwners: str, _required: int) -> None:
         super().on_install()
@@ -95,7 +95,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def on_update(self) -> None:
         super().on_update()
 
-    def _is_convertible_params_format(self, json_formatted_params: str):
+    def _check_params_format_convertible(self, json_formatted_params: str):
         # when user input None as a _params' value,
         # this will be changed to "" when creating Transaction instance.
         # "" will be changed to {} when finally execute transaction. so doesn't check format
@@ -111,39 +111,37 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             except:
                 self.revert(f"can't convert 'params' json data, check the 'params' parameter")
 
-    def not_null(self, address: Address):
-        #Todo: check(governance and null address)
-        hx_null = Address.from_string("hx0000000000000000000000000000000000000000")
-        cx_null = Address.from_string("cx0000000000000000000000000000000000000000")
-        if address == hx_null or address == cx_null:
-            self.revert("invalid address")
+    def _only_positive_number(self, *args):
+        for number in args:
+            if number < 0:
+                self.revert(f"only positive number is accepted")
 
-    def wallet_owner_does_not_exist(self, wallet_owner: Address):
+    def _wallet_owner_does_not_exist(self, wallet_owner: Address):
         if self._is_wallet_owner[wallet_owner] is True:
             self.revert(f"{wallet_owner} already exists as an owner of the wallet")
 
-    def wallet_owner_exist(self, wallet_owner: Address):
+    def _wallet_owner_exist(self, wallet_owner: Address):
         if self._is_wallet_owner[wallet_owner] is False:
             self.revert(f"{wallet_owner} is not an owner of wallet")
 
-    def transaction_exists(self, transaction_id: int):
+    def _transaction_exists(self, transaction_id: int):
         if self._transactions[transaction_id] is None or self._transaction_count <= transaction_id:
             self.revert(f"transaction id '{transaction_id}' is not exist")
 
-    def confirmed(self, transaction_id: int, wallet_owner: Address):
+    def _confirmed(self, transaction_id: int, wallet_owner: Address):
         if self._confirmations[transaction_id][wallet_owner] is False:
             self.revert(f"{wallet_owner} hasn't confirmed to transaction id '{transaction_id}' yet")
 
-    def not_confirmed(self, transation_id: int, wallet_owner: Address):
+    def _not_confirmed(self, transation_id: int, wallet_owner: Address):
         if self._confirmations[transation_id][wallet_owner] is True:
             self.revert(f"{wallet_owner} has already confirmed to transaction '{transation_id}'")
 
-    def not_executed(self, transaction_id: int):
+    def _not_executed(self, transaction_id: int):
         # before call this method, check if transaction is exists(use transaction_exists method)
         if self._transactions[transaction_id][0] is True:
             self.revert(f"transaction id '{transaction_id}' has already been executed")
 
-    def valid_requirement(self, wallet_owner_count: int, required: int):
+    def _valid_requirement(self, wallet_owner_count: int, required: int):
         if wallet_owner_count > self._MAX_WALLET_OWNER_COUNT or \
                 required > wallet_owner_count or \
                 required <= 0 or \
@@ -163,9 +161,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external
     def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
-        self.wallet_owner_exist(self.msg.sender)
+        self._wallet_owner_exist(self.msg.sender)
         # prevent failure of executing transaction caused by 'params' conversion problems
-        self._is_convertible_params_format(_params)
+        self._check_params_format_convertible(_params)
 
         # add transaction
         transaction_id = self._add_transaction(_destination, _method, _params, _value, _description)
@@ -174,9 +172,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external
     def confirmTransaction(self, _transactionId: int):
-        self.wallet_owner_exist(self.msg.sender)
-        self.transaction_exists(_transactionId)
-        self.not_confirmed(_transactionId, self.msg.sender)
+        self._wallet_owner_exist(self.msg.sender)
+        self._transaction_exists(_transactionId)
+        self._not_confirmed(_transactionId, self.msg.sender)
 
         self._confirmations[_transactionId][self.msg.sender] = True
 
@@ -186,18 +184,16 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external
     def revokeTransaction(self, _transactionId: int):
-        self.wallet_owner_exist(self.msg.sender)
-        self.transaction_exists(_transactionId)
-        self.not_executed(_transactionId)
-        self.confirmed(_transactionId, self.msg.sender)
+        self._wallet_owner_exist(self.msg.sender)
+        self._transaction_exists(_transactionId)
+        self._not_executed(_transactionId)
+        self._confirmed(_transactionId, self.msg.sender)
 
         self._confirmations[_transactionId][self.msg.sender] = False
 
         self.Revocation(self.msg.sender, _transactionId)
 
     def _add_transaction(self, destination: Address, method: str, params: str, value: int, description: str) ->int:
-        self.not_null(destination)
-
         transaction = Transaction(destination=destination,
                                   method=method,
                                   params=params,
@@ -216,7 +212,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # as this method can't be called from other SCORE or EOA, doesn't check owner, transactions_id, confirmations.
         if self._is_confirmed(transaction_id):
             if self._external_call(self._transactions[transaction_id]):
-                self._transactions[transaction_id] = True.to_bytes(1, 'big') + self._transactions[transaction_id][1:]
+                self._transactions[transaction_id] = True.to_bytes(1, "big") + self._transactions[transaction_id][1:]
 
                 self.Execution(transaction_id)
             else:
@@ -232,8 +228,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if transaction.params != "":
             params = json.loads(transaction.params)
             for param in params:
-                method_params[param['name']] = params_type_converter(param['type'], param['value'])
-
+                method_params[param["name"]] = params_type_converter(param["type"], param["value"])
         try:
             if transaction.destination.is_contract:
                 self.call(addr_to=transaction.destination,
@@ -259,10 +254,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @only_wallet
     @external
     def addWalletOwner(self, _walletOwner: Address):
-        self.wallet_owner_does_not_exist(_walletOwner)
-        self.not_null(_walletOwner)
+        self._wallet_owner_does_not_exist(_walletOwner)
         # check if owner's count exceed '_MAX_OWNER_COUNT'
-        self.valid_requirement(len(self._wallet_owners) + 1, self._required)
+        self._valid_requirement(len(self._wallet_owners) + 1, self._required)
 
         self._wallet_owners.put(_walletOwner)
         self._is_wallet_owner[_walletOwner] = True
@@ -272,9 +266,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @only_wallet
     @external
     def replaceWalletOwner(self, _walletOwner: Address, _newWalletOwner: Address):
-        self.wallet_owner_exist(_walletOwner)
-        self.wallet_owner_does_not_exist(_newWalletOwner)
-        self.not_null(_newWalletOwner)
+        self._wallet_owner_exist(_walletOwner)
+        self._wallet_owner_does_not_exist(_newWalletOwner)
 
         for idx, wallet_owner in enumerate(self._wallet_owners):
             if wallet_owner == _walletOwner:
@@ -290,11 +283,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @only_wallet
     @external
     def removeWalletOwner(self, _walletOwner: Address):
-        self.wallet_owner_exist(_walletOwner)
+        self._wallet_owner_exist(_walletOwner)
         # if all owners are removed, this contract can not be executed.
         # so check if _owner is only one left in this wallet
         wallet_owners_count = len(self._wallet_owners)
-        self.valid_requirement(wallet_owners_count - 1, self._required)
+        self._valid_requirement(wallet_owners_count - 1, self._required)
 
         for idx, owner in enumerate(self._wallet_owners):
             if owner == _walletOwner:
@@ -311,7 +304,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @only_wallet
     @external
     def changeRequirement(self, _required: int):
-        self.valid_requirement(len(self._wallet_owners), _required)
+        self._valid_requirement(len(self._wallet_owners), _required)
 
         self._required = _required
 
@@ -338,6 +331,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external(readonly=True)
     def getWalletOwners(self, _from: int, _to: int)-> list:
+        self._only_positive_number(_from,_to)
+
         wallet_owner_list = []
         for idx, wallet_owner in enumerate(self._wallet_owners, start=_from):
             if idx == _to:
@@ -356,6 +351,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external(readonly=True)
     def getConfirmations(self, _from: int, _to: int, _transactionId: int)-> list:
+        self._only_positive_number(_from, _to)
+
         if _to - _from >= self._MAX_DATA_REQUEST_AMOUNT:
             raise IconScoreException("Requests that exceed the allowed amount")
 
@@ -381,6 +378,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     @external(readonly=True)
     def getTransactionIds(self, _from: int, _to: int, _pending: bool=True, _executed: bool=True)-> list:
+        self._only_positive_number(_from, _to)
+
         if _to - _from >= self._MAX_DATA_REQUEST_AMOUNT:
             raise IconScoreException("Requests that exceed the allowed amount")
 
