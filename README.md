@@ -12,17 +12,17 @@ Multi Signature Wallet is a SCORE that makes more than one users managing ICON f
 SCORE which ICX and tokens are stored in. stored icx and tokens can be used(transferred) only when satisfying Internally set conditions of wallet.
 
 ##### Wallet owner
-addresses who have Participation rights of Wallet SCORE. 
+Addresses who have Participation rights of Wallet SCORE. 
 
 ##### Transaction
-transaction which wallet owner initiate to change wallet's state(e.g. transfer tokens or ICX which is stored in wallet, add new wallet owner, change requirements of confirmations(2to3 -> 3to3) etc).
+Transaction which wallet owner initiate to change wallet's state(e.g. transfer tokens or ICX which is stored in wallet, add new wallet owner, change requirements of confirmations(2to3 -> 3to3) etc).
 
 ##### Requirement
-The number of approvals of the wallet owner required for the Transaction to actually execute.
+The number of approvals of the wallet owners required for the transaction to be executed.
 
 #### Logic
 
-First step is deploying multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement.  For examples, if you want to use wallet which set three wallet owners and needs two confirmations for executing a transaction(2 to 3), you have to input two parameters 1) three wallet addresses of string,  2) required '2' when deploying wallet
+First step is deploying multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement.  For examples, if you want to use wallet which is set three wallet owners and needs two confirmations for executing a transaction(2 to 3), you have to input two parameters 1) three wallet addresses of string,  2) required '2' when deploying wallet.
 
 ```json
 {
@@ -31,7 +31,7 @@ First step is deploying multisig wallet SCORE. At the time of deployment, you ca
 }
 ```
 
-After deploying wallet, wallet owners can deposit ICX and tokens(simply 'send icx' and 'transfer' token to wallet) and manage it. When using funds or changing Internally set conditions, use ```submitTransaction``` method. For example, if you want to send 10 ICX to specific address, call ```submitTransaction``` with ballow parameters.
+After deploying wallet, wallet owners can deposit ICX and tokens(simply 'send icx' and 'transfer' token to the wallet) and manage it. When using funds or changing Internally set conditions, use ```submitTransaction``` method. For example, if you want to send 10 ICX to the specific address, call ```submitTransaction``` with below parameters.
 ```json
 {
     "_destination": "hx43fe2~",
@@ -47,7 +47,7 @@ After the transaction is registered, other wallet owners can confirm to this tra
 
 ### Methods(Read-only)
 
-Ballow is list of read-only method. by calling these method, you can get information of wallet.
+Below is list of read-only method. by calling these method, you can get information of wallet.
 
 #### getRequirements
 
@@ -129,11 +129,14 @@ def getTransactionIds(self, _from: int, _to: int, _pending: bool=True, _executed
 ```
 
 
+
 ### Methods
 
-ballow is list of method. 
+Below is a list of the method which wallet owner can call.  
 
 #### submitTransaction
+
+Submit transaction which is to be executed when all the number of confirmations meets 'requrement'. Only wallet owners can call this method. The wallet owner who has called this method be confirmed to this transaction as soon as submit transaction successfully.
 
 ```python
 @external
@@ -142,96 +145,149 @@ def submitTransaction(self, _destination: Address, _method: str="", _params: str
 ```
 
 #### confirmTransaction
+
+Confirm a transaction corresponding to ```_transactionId```. as soon as a transaction's confirmation count meets  'requrement', transaction is executed. Only wallet owners can call this method.
+
 ```python
 @external
 def confirmTransaction(self, _transactionId: int):
 ```
 #### revokeTransaction
+
+Revoke confirmation of a transaction corresponding to  ```_transactionId```.  Only already confirmed wallet owner can revoke there own confirmation of a transaction. Wallet owner can't revoke others confirmation.
+
 ```python
 @external
 def revokeTransaction(self, _transactionId: int):
 ```
+
+
 ### Methods(Only called by wallet)
 
+These methods only can be called by multisig wallet SCORE itself. If you want to execute these methods, call ```submitTransaction``` and input method's information as a parameter.
+
 #### addWalletOwner
+
+Add new wallet owner. 
 
 ```python
 @external
 def addWalletOwner(self, _walletOwner: Address):
 ```
 #### replaceWalletOwner
+
+Replace existing wallet owner to new wallet owner.
+
 ```python
 @external
 def replaceWalletOwner(self, _walletOwner: Address, _newWalletOwner: Address):
 ```
 #### removeWalletOwner
+
+Remove existing wallet owner.
+
 ```python
 @external
 def removeWalletOwner(self, _walletOwner: Address):
 ```
 #### changeRequirement
+
+Change requirement. ```_required``` can't exceed the number of wallet owner. 
+
 ```python
 @external
 def changeRequirement(self, _required: int):
 ```
 
+
+
 ### Eventlogs
 
 #### Confirmation
+
+Must trigger on any successful confirmation.
+
 ```python
 @eventlog(indexed=2)
 def Confirmation(self, _sender: Address, _transactionId: int):
         pass
 ```
 #### Revocation
+
+Must trigger on revoke confirmation.
+
 ```python
 @eventlog(indexed=2)
 def Revocation(self, _sender: Address, _transactionId: int):
         pass
 ```
 #### Submission
+
+Must trigger on submit transaction.
+
 ```python
 @eventlog(indexed=1)
 def Submission(self, _transactionId: int):
         pass
 ```
 #### Execution
+
+Must trigger on the transaction being executed successfully.
+
 ```python
 @eventlog(indexed=1)
 def Execution(self, _transactionId: int):
         pass
 ```
 #### ExecutionFailure
+
+Must trigger on a failure of the transaction execution.
+
 ```python
 @eventlog(indexed=1)
 def ExecutionFailure(self, _transactionId: int):
         pass
 ```
 #### Deposit
+
+Must trigger on deposit ICX to MultiSig Wallet SCORE.
+
 ```python
 @eventlog(indexed=1)
 def Deposit(self, _sender: Address, _value: int):
         pass
 ```
 #### DepsitToken
+
+Must trigger on deposit token to MultiSig Wallet SCORE.
+
 ```python
 @eventlog(indexed=1)
 def DepositToken(self, _sender: Address, _value: int, _data: bytes):
         pass
 ```
 #### WalletOwnerAddition
+
+Must trigger on adding new wallet owner.
+
 ```python
 @eventlog(indexed=1)
 def WalletOwnerAddition(self, _walletOwner: Address):
         pass
 ```
 #### WalletOwnerRemoval
+
+Must trigger on removing wallet owner.
+
 ```python
 @eventlog(indexed=1)
 def WalletOwnerRemoval(self, _walletOwner: Address):
         pass
 ```
 #### Requirement
+
+Must trigger on changing requirement.
+
 ```python
 @eventlog
 def RequirementChange(self, _required: int):
