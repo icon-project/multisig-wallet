@@ -65,7 +65,7 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmations",
-                "params": {"_from": "0", "_to": "10", "_transactionId": "0x00"}
+                "params": {"_offset": "0", "_count": "10", "_transactionId": "0x00"}
             }
         }
 

@@ -56,7 +56,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionIds",
-                "params": {"_from": "0", "_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
 
@@ -72,7 +72,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionIds",
-                "params": {"_from": "0", "_to": "51"}
+                "params": {"_offset": "0", "_count": "51"}
             }
         }
 
@@ -106,7 +106,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionIds",
-                "params": {"_from": "0", "_to": "10", "_executed": "0"}
+                "params": {"_offset": "0", "_count": "10", "_executed": "0"}
             }
         }
         expected_massage = [x for x in range(1,10,2)]
@@ -121,7 +121,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionIds",
-                "params": {"_from": "0", "_to": "10", "_pending": "0"}
+                "params": {"_offset": "0", "_count": "10", "_pending": "0"}
             }
         }
         expected_massage = [x for x in range(0, 10, 2)]

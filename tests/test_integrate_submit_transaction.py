@@ -24,6 +24,8 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         super().setUp()
         self.multisig_score_addr = self._deploy_multisig_wallet()
 
+        #TODO: check variables length failure case
+
     def test_submit_transaction_validate_params_format(self):
         # success case: valid params format
         unsupported_type_params = [

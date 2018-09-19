@@ -330,12 +330,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return self._is_wallet_owner[_walletOwner]
 
     @external(readonly=True)
-    def getWalletOwners(self, _from: int, _to: int)-> list:
-        self._only_positive_number(_from,_to)
+    def getWalletOwners(self, _offset: int, _count: int)-> list:
+        self._only_positive_number(_offset, _count)
 
         wallet_owner_list = []
-        for idx, wallet_owner in enumerate(self._wallet_owners, start=_from):
-            if idx == _to:
+        for idx, wallet_owner in enumerate(self._wallet_owners, start=_offset):
+            if idx == _offset + _count:
                 break
             wallet_owner_list.append(wallet_owner)
 
@@ -350,16 +350,16 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return count
 
     @external(readonly=True)
-    def getConfirmations(self, _from: int, _to: int, _transactionId: int)-> list:
-        self._only_positive_number(_from, _to)
+    def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> list:
+        self._only_positive_number(_offset, _count)
 
-        if _to - _from >= self._MAX_DATA_REQUEST_AMOUNT:
+        if _count > self._MAX_DATA_REQUEST_AMOUNT:
             raise IconScoreException("Requests that exceed the allowed amount")
 
         confirmed_addrs = []
 
-        for idx, wallet_owner in enumerate(self._wallet_owners, start=_from):
-            if idx == _to:
+        for idx, wallet_owner in enumerate(self._wallet_owners, start=_offset):
+            if idx == _offset + _count:
                 break
             if self._confirmations[_transactionId][wallet_owner]:
                 confirmed_addrs.append(wallet_owner)
@@ -377,18 +377,18 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return tx_count
 
     @external(readonly=True)
-    def getTransactionIds(self, _from: int, _to: int, _pending: bool=True, _executed: bool=True)-> list:
-        self._only_positive_number(_from, _to)
+    def getTransactionIds(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True)-> list:
+        self._only_positive_number(_offset, _count)
 
-        if _to - _from >= self._MAX_DATA_REQUEST_AMOUNT:
+        if _count > self._MAX_DATA_REQUEST_AMOUNT:
             raise IconScoreException("Requests that exceed the allowed amount")
 
         transaction_ids = []
 
         # prevent searching not existed transaction
-        _to = _to if self._transaction_count > _to else self._transaction_count
+        _count = _offset + _count if self._transaction_count > _offset + _count - 1 else self._transaction_count
 
-        for tx_id in range(_from, _to):
+        for tx_id in range(_offset, _count):
             if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
                 transaction_ids.append(tx_id)
 

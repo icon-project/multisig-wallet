@@ -106,7 +106,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0","_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -157,7 +157,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0", "_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -208,7 +208,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0","_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -259,7 +259,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0","_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -315,7 +315,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0","_to": "10"}
+                "params": {"_offset": "0","_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -372,7 +372,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0", "_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -436,7 +436,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0", "_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
@@ -516,7 +516,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_from": "0", "_to": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)
