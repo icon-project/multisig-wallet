@@ -19,42 +19,66 @@ from iconservice import *
 
 def params_type_converter(param_type: str, value: any):
     if param_type == "int":
-        param = _convert_value_int(value) if isinstance(value, str) else value
+        param = _convert_value_int(value)
     elif param_type == "str":
-        param = _convert_value_string(value) if isinstance(value, str) else value
+        param = _convert_value_string(value)
     elif param_type == "bool":
-        param = _convert_value_bool(value) if isinstance(value, str) else value
+        param = _convert_value_bool(value)
     elif param_type == "Address":
-        param = _convert_value_address(value) if isinstance(value, str) else value
+        param = _convert_value_address(value)
     elif param_type == "bytes":
-        param = _convert_value_bytes(value) if isinstance(value, str) else value
+        param = _convert_value_bytes(value)
     else:
-        raise IconScoreException\
-            (f"{param_type} is not supported type(only int, str, bool, Address, bytes are supported)")
+        raise IconScoreException(
+            f"{param_type} is not supported type(only int, str, bool, Address, bytes are supported)")
     return param
 
-#Todo: builtin
-def _convert_value_int(value: str) -> int:
-    if value.startswith('0x') or value.startswith('-0x'):
-        return int(value, 16)
+
+def _convert_value_int(value) -> int:
+    if isinstance(value, int):
+        result = value
+    elif isinstance(value, str):
+        if value.startswith('0x') or value.startswith('-0x'):
+            result = int(value, 16)
+        else:
+            result = int(value)
     else:
-        return int(value)
+        raise IconScoreException("type and value's actual type are not match.")
+    return result
 
 
-def _convert_value_string(value: str) -> str:
-    return value
-
-
-def _convert_value_bool(value: str) -> bool:
-    return bool(_convert_value_int(value))
-
-
-def _convert_value_address(value: str) -> 'Address':
-    return Address.from_string(value)
-
-
-def _convert_value_bytes(value: str) -> bytes:
-    if value.startswith('0x'):
-        return bytes.fromhex(value[2:])
+def _convert_value_string(value) -> str:
+    if isinstance(value, str):
+        return value
     else:
-        return bytes.fromhex(value)
+        raise IconScoreException("type and value's actual type are not match.")
+
+
+def _convert_value_address(value) -> 'Address':
+    if isinstance(value, str):
+        return Address.from_string(value)
+    else:
+        raise IconScoreException("type and value's actual type are not match.")
+
+
+def _convert_value_bool(value) -> bool:
+    if isinstance(value, bool):
+        result = value
+    elif isinstance(value, str):
+        result = bool(_convert_value_int(value))
+    else:
+        raise IconScoreException("type and value's actual type are not match.")
+    return result
+
+
+def _convert_value_bytes(value) -> bytes:
+    if isinstance(value, bytes):
+        result = Address.from_string(value)
+    elif isinstance(value, str):
+        if value.startswith('0x'):
+            result = bytes.fromhex(value[2:])
+        else:
+            result = bytes.fromhex(value)
+    else:
+        raise IconScoreException("type and value's actual type are not match.")
+    return result
