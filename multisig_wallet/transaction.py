@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from struct import Struct, pack, unpack
 
 from iconservice import *
@@ -89,6 +90,12 @@ class Transaction:
     @property
     def description(self) -> str:
         return self._description
+
+    def to_dict(self):
+        tx_dict = self.__dict__
+        tx_dict['_destination'] = str(self.destination)
+        del tx_dict['_flexible_struct_format']
+        return tx_dict
 
     @staticmethod
     def from_bytes(buf: bytes):
