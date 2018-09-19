@@ -14,16 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from struct import pack, unpack
+from struct import Struct, pack, unpack
 
 from iconservice import *
 
-
-DEFAULT_VALUE_BYTES = 32
+# addr, value fix
+ADDRESS_BYTE_LEN = 21
+DEFAULT_VALUE_BYTES = 16
 DATA_BYTE_ORDER = "big"
 
+MAX_METHOD_LEN = 100
+MAX_PARAMS_LEN = 1000
+MAX_DESCRIPTION_LEN = 1000
 
 class Transaction:
+    # executed flag 1bytes + address 21bytes + value 16bytes + format length 1bytes
+    _fixed_struct = Struct(f">Bx{ADDRESS_BYTE_LEN}sx{DEFAULT_VALUE_BYTES}sxB")
+
     def __init__(self,
                  destination: Address,
                  method: str,
@@ -32,25 +39,28 @@ class Transaction:
                  description: str,
                  executed: bool=False):
 
-        self._executed = executed
-        self._destination = destination
         # as None type can't be converted to bytes, must be changed to ""
-        self._method = "" if method is None else method
-        self._params = "" if params is None else params
+        method = "" if method is None else method
+        params = "" if params is None else params
+        # struct_format will be used when decode serialized transaction data(method, params, description)
+        self._flexible_struct_format = self._make_struct_format(method, params, description)
+        self._executed = executed
+        self._method = method
+        self._params = params
+        self._destination = destination
         self._value = value
         self._description = description
-        # struct_format will be used when decode serialized transaction data
-        self._struct_format = self._make_struct_format()
 
-    def _make_struct_format(self):
-        #todo: check length of each params, in this method, restrict length of data
-        destination_len = len(self._destination.to_bytes())
-        method_len = len(self._method.encode())
-        params_len = len(self._params.encode())
-        value_len = DEFAULT_VALUE_BYTES
-        description_len = len(self._description.encode())
+    def _make_struct_format(self, method, params, description):
+        method_len = len(method.encode())
+        params_len = len(params.encode())
+        description_len = len(description.encode())
+        if method_len > MAX_METHOD_LEN \
+                or params_len > MAX_PARAMS_LEN \
+                or description_len > MAX_DESCRIPTION_LEN:
+            revert("too long variable length")
 
-        return f'>x{destination_len}sx{method_len}sx{params_len}sx{value_len}sx{description_len}s'
+        return f'>x{method_len}sx{params_len}sx{description_len}s'
 
     @property
     def executed(self) -> bool:
@@ -82,35 +92,43 @@ class Transaction:
 
     @staticmethod
     def from_bytes(buf: bytes):
-        transaction_executed = buf[0]
-        struct_format_len = buf[1]
-        struct_format = buf[2:struct_format_len + 2].decode()
+        fixed_variables_total_len = Transaction._fixed_struct.size
+        transaction_executed, destination, value, flexible_struct_format_len = \
+            Transaction._fixed_struct.unpack(buf[:fixed_variables_total_len])
 
-        destination, method, params, value, description = unpack(struct_format, buf[struct_format_len + 2:])
+        flexible_struct_format = \
+            buf[fixed_variables_total_len: fixed_variables_total_len + flexible_struct_format_len].decode()
+        method, params, description = unpack(flexible_struct_format,
+                                             buf[fixed_variables_total_len + flexible_struct_format_len:])
 
         return Transaction(executed=transaction_executed,
-                           destination=Address.from_bytes(destination),
+                           destination=Address.from_bytes(destination.strip(b'\x00')),
                            method=method.decode(encoding="utf-8"),
                            params=params.decode(encoding="utf-8"),
                            value=int.from_bytes(value, DATA_BYTE_ORDER),
                            description=description.decode(encoding="utf-8"))
 
     def to_bytes(self) -> bytes:
-        struct_format_bytes = self._struct_format.encode()
-        struct_format_len = len(struct_format_bytes)
-        if struct_format_len > 256:
-            raise IconScoreException("too long parameters")
+        flexible_struct_format_bytes = self._flexible_struct_format.encode()
+        flexible_struct_format_len = len(flexible_struct_format_bytes)
+        if flexible_struct_format_len > 255:
+            revert("too long parameters")
 
-        packed_variables = pack(
-            self._struct_format,
-            self._destination.to_bytes(),
+        packed_fixed_variables = self._fixed_struct.pack(
+            self.executed,
+            self.destination.to_bytes(),
+            self._value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER),
+            flexible_struct_format_len
+        )
+
+        packed_flexible_variables = pack(
+            self._flexible_struct_format,
             self._method.encode(encoding="utf-8"),
             self._params.encode(encoding="utf-8"),
-            self._value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER),
             self._description.encode(encoding="utf-8"))
 
-        transaction = self.executed.to_bytes(1, DATA_BYTE_ORDER) + \
-                      struct_format_len.to_bytes(1, DATA_BYTE_ORDER) + \
-                      struct_format_bytes + packed_variables
+        transaction = packed_fixed_variables + \
+                      flexible_struct_format_bytes + \
+                      packed_flexible_variables
 
         return transaction
