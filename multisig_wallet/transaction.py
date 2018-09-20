@@ -28,8 +28,9 @@ MAX_METHOD_LEN = 100
 MAX_PARAMS_LEN = 1000
 MAX_DESCRIPTION_LEN = 1000
 
+
 class Transaction:
-    # executed flag 1bytes + address 21bytes + value 16bytes + format length 1bytes
+    # format: executed flag 1bytes + address 21bytes + value 16bytes + format length 1bytes
     _fixed_struct = Struct(f">Bx{ADDRESS_BYTE_LEN}sx{DEFAULT_VALUE_BYTES}sxB")
 
     def __init__(self,
@@ -46,10 +47,10 @@ class Transaction:
         # struct_format will be used when decode serialized transaction data(method, params, description)
         self._flexible_struct_format = self._make_struct_format(method, params, description)
         self._executed = executed
-        self._method = method
-        self._params = params
         self._destination = destination
         self._value = value
+        self._method = method
+        self._params = params
         self._description = description
 
     def _make_struct_format(self, method, params, description):
@@ -59,7 +60,7 @@ class Transaction:
         if method_len > MAX_METHOD_LEN \
                 or params_len > MAX_PARAMS_LEN \
                 or description_len > MAX_DESCRIPTION_LEN:
-            revert("too long variable length")
+            revert("too long parameter length")
 
         return f'>x{method_len}sx{params_len}sx{description_len}s'
 

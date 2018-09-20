@@ -54,13 +54,6 @@ def _convert_value_string(value) -> str:
         raise IconScoreException("type and value's actual type are not match.")
 
 
-def _convert_value_address(value) -> 'Address':
-    if isinstance(value, str):
-        return Address.from_string(value)
-    else:
-        raise IconScoreException("type and value's actual type are not match.")
-
-
 def _convert_value_bool(value) -> bool:
     if isinstance(value, bool):
         result = value
@@ -71,10 +64,16 @@ def _convert_value_bool(value) -> bool:
     return result
 
 
+def _convert_value_address(value) -> 'Address':
+    if isinstance(value, str):
+        return Address.from_string(value)
+    else:
+        raise IconScoreException("type and value's actual type are not match.")
+
+
 def _convert_value_bytes(value) -> bytes:
-    if isinstance(value, bytes):
-        result = Address.from_string(value)
-    elif isinstance(value, str):
+    # as JSON format doesn't accept bytes type, don't check if is instance of bytes.
+    if isinstance(value, str):
         if value.startswith('0x'):
             result = bytes.fromhex(value[2:])
         else:
