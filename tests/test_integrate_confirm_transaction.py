@@ -74,7 +74,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         }
 
         actual_confirm_count = self._query(query_request)
-        expected_confirm_owner = self._owner1
+        expected_confirm_owner = str(self._owner1)
         actual_confirm_owner = actual_confirm_count[0]
         self.assertEqual(expected_confirm_owner, actual_confirm_owner)
 
@@ -116,9 +116,24 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
             }
         }
 
-        expected_confirm_owners = [self._owner1, self._owner2]
+        expected_confirm_owners = [str(self._owner1), str(self._owner2)]
         actual_confirm_owners = self._query(query_request)
         self.assertEqual(expected_confirm_owners, actual_confirm_owners)
+
+        # check if transaction executed flag switched to True
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionsExecuted",
+                "params": {"_transactionId":"0"}
+            }
+        }
+        expected_flag_state = True
+        actual_flag_state = self._query(query_request)
+        self.assertEqual(expected_flag_state, actual_flag_state)
 
         # check if transaction executed successfully
         query_request = {
@@ -217,7 +232,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
             }
         }
 
-        expected_confirm_owner = [self._owner1]
+        expected_confirm_owner = [str(self._owner1)]
         actual_confirm_owner = self._query(query_request)
         self.assertEqual(expected_confirm_owner, actual_confirm_owner)
 
@@ -285,9 +300,8 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         self.assertEqual(int(True), tx_results[0].status)
 
         #confirm transaction
-        valid_owner = self._owner2
         confirm_tx_params = {'_transactionId': '0x00'}
-        confirm_tx = self._make_score_call_tx(addr_from=valid_owner,
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
                                               addr_to=self.multisig_score_addr,
                                               method='confirmTransaction',
                                               params=confirm_tx_params
@@ -308,7 +322,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
             }
         }
 
-        expected_confirm_owners = [self._owner1, self._owner2]
+        expected_confirm_owners = [str(self._owner1), str(self._owner2)]
         actual_confirm_owners = self._query(query_request)
         self.assertEqual(expected_confirm_owners, actual_confirm_owners)
 
@@ -331,5 +345,4 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         expected_execution_event_log = 'ExecutionFailure(int)'
         actual_execution_event_log = tx_results[0].event_logs[1].indexed[0]
         self.assertEqual(expected_execution_event_log, actual_execution_event_log)
-        pass
 

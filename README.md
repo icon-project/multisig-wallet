@@ -6,21 +6,21 @@ This document describes a Multi Signature Wallet SCORE and provides guide line a
 Multi Signature Wallet is a SCORE that makes more than one users managing ICON funds safely.  Multi Signature Wallet can prevent one person from running off with the icx or tokens and reduce key person risk in case one person is incapacitated or loses their keys. We adopted multisig wallet mechanism inspired by **gnosis**.
 
 ## How To Use
-#### Definition
+### Definition
 
-##### Wallet
+#### Wallet
 SCORE which ICX and tokens are stored in. stored icx and tokens can be used(transferred) only when satisfying Internally set conditions of wallet.
 
-##### Wallet owner
+#### Wallet owner
 Addresses who have Participation rights of Wallet SCORE. 
 
-##### Transaction
+#### Transaction
 Transaction which wallet owner initiate to change wallet's state(e.g. transfer tokens or ICX which is stored in wallet, add new wallet owner, change requirements of confirmations(2to3 -> 3to3) etc).
 
-##### Requirement
+#### Requirement
 The number of approvals of the wallet owners required for the transaction to be executed.
 
-#### Logic
+### Logic
 
 First step is deploying multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement.  For examples, if you want to use wallet which is set three wallet owners and needs two confirmations for executing a transaction(2 to 3), you have to input two parameters 1) three wallet addresses of string,  2) required '2' when deploying wallet.
 
@@ -60,11 +60,11 @@ def getRequirements(self) -> int:
 
 #### getTransactionInfo
 
-Returns the transaction data for each id which is serialized.
+Returns the transaction data for each id.
 
 ```python
 @external(readonly=True)
-def getTransactionInfo(self, _transactionId: int) -> bytes:
+def getTransactionInfo(self, _transactionId: int) -> dict:
 ```
 
 #### getTransactionsExecuted
@@ -119,13 +119,13 @@ Return total number of transactions which is submitted in the wallet.
 @external(readonly=True)
 def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
 ```
-#### getTransactionIds
+#### getTransactionList
 
-Return list of transaction ids.
+Return list of transaction.
 
 ```python
 @external(readonly=True)
-def getTransactionIds(self, _from: int, _to: int, _pending: bool=True, _executed: bool=True)-> list:
+def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True)-> list:
 ```
 
 
@@ -136,7 +136,7 @@ Below is a list of the method which wallet owner can call.
 
 #### submitTransaction
 
-Submit transaction which is to be executed when all the number of confirmations meets 'requrement'. Only wallet owners can call this method. The wallet owner who has called this method be confirmed to this transaction as soon as submit transaction successfully.
+Submit transaction which is to be executed when the number of confirmations meets 'requrement'. Only wallet owners can call this method. The wallet owner who has called this method be confirmed to this transaction as soon as submit transaction successfully.
 
 ```python
 @external

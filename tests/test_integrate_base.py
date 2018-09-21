@@ -172,7 +172,7 @@ class TestIntegrateBase(TestCase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner3)]
         self.assertEqual(response, expected_owners)
 
         # check requirements
@@ -229,7 +229,7 @@ class TestIntegrateBase(TestCase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner3)]
         self.assertEqual(response, expected_owners)
 
         # check requirements

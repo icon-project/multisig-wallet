@@ -30,9 +30,9 @@ class TestIntegrateSendToken(TestIntegrateBase):
         # deposit owner1's 1000 token to multisig wallet score
         transfer_tx_params = {'_to': str(self.multisig_score_addr), '_value': str(hex(1000))}
         confirm_tx = self._make_score_call_tx(addr_from=self._owner1,
-                                                     addr_to=self.token_score_addr,
-                                                     method='transfer',
-                                                     params=transfer_tx_params)
+                                              addr_to=self.token_score_addr,
+                                              method='transfer',
+                                              params=transfer_tx_params)
 
         prev_block, tx_results = self._make_and_req_block([confirm_tx])
         self._write_precommit_state(prev_block)
@@ -75,7 +75,6 @@ class TestIntegrateSendToken(TestIntegrateBase):
              'type': 'int',
              'value': 500}
         ]
-        #todo: exception case bool, 500
 
         # submit transaction
         submit_tx_params = {'_destination': str(self.token_score_addr),
@@ -84,10 +83,10 @@ class TestIntegrateSendToken(TestIntegrateBase):
                             '_description': 'send 500 token to owner4'}
 
         confirm_tx = self._make_score_call_tx(addr_from=self._owner1,
-                                                     addr_to=self.multisig_score_addr,
-                                                     method='submitTransaction',
-                                                     params=submit_tx_params
-                                                     )
+                                              addr_to=self.multisig_score_addr,
+                                              method='submitTransaction',
+                                              params=submit_tx_params
+                                              )
         prev_block, tx_results = self._make_and_req_block([confirm_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
@@ -159,3 +158,136 @@ class TestIntegrateSendToken(TestIntegrateBase):
         }
         response = self._query(query_request)
         self.assertEqual(500, response)
+
+    def test_send_token_revert(self):
+        # failure case: raise revert while sending 500 token to owner4.(500 token should not be sended)
+        # deposit owner1's 1000 token to multisig wallet score
+        transfer_tx_params = {'_to': str(self.multisig_score_addr), '_value': str(hex(1000))}
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                              addr_to=self.token_score_addr,
+                                              method='transfer',
+                                              params=transfer_tx_params)
+
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(int(True), tx_results[0].status)
+
+        # check multisig wallet score's token amount(should be 1000)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(self.multisig_score_addr)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(1000, response)
+
+        # check owner4's token amount(should be 0)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(self._owner4)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(0, response)
+
+        # make transaction which send 500 token to owner4(call revert_check method)
+        revert_check_params = [
+            {'name': '_to',
+             'type': 'Address',
+             'value': str(self._owner4)},
+            {'name': '_value',
+             'type': 'int',
+             'value': 500}
+        ]
+
+        # submit transaction
+        submit_tx_params = {'_destination': str(self.token_score_addr),
+                            '_method': 'revert_check',
+                            '_params': json.dumps(revert_check_params),
+                            '_description': 'send 500 token to owner4'}
+
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                              addr_to=self.multisig_score_addr,
+                                              method='submitTransaction',
+                                              params=submit_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(int(True), tx_results[0].status)
+
+        # confirm transaction
+        confirm_tx_params = {'_transactionId': '0x00'}
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
+                                              addr_to=self.multisig_score_addr,
+                                              method='confirmTransaction',
+                                              params=confirm_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(int(True), tx_results[0].status)
+
+        # check confirmation count(should be 2)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getConfirmationCount",
+                "params": {'_transactionId': "0x00"}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(2, response)
+
+        # check transaction executed count(should be False)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionsExecuted",
+                "params": {'_transactionId': "0x00"}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(False, response)
+
+        # check owner4's token amount(should be 0)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(self._owner4)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(0, response)
+
+        # check multisig wallet's token amount(should be 1000)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.token_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "balanceOf",
+                "params": {'_owner': str(self.multisig_score_addr)}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(1000, response)

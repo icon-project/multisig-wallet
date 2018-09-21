@@ -118,7 +118,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def _only_positive_number(self, *args):
         for number in args:
             if number < 0:
-                self.revert(f"only positive number is accepted")
+                raise IconScoreException(f"only positive number is accepted")
 
     def _wallet_owner_does_not_exist(self, wallet_owner: Address):
         if self._is_wallet_owner[wallet_owner] is True:
@@ -143,7 +143,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def _not_executed(self, transaction_id: int):
         # before call this method, check if transaction is exists(use transaction_exists method)
-        if self._transactions[transaction_id][0] is True:
+        if self._transactions[transaction_id][0] == 1:
             self.revert(f"transaction id '{transaction_id}' has already been executed")
 
     def _valid_requirement(self, wallet_owner_count: int, required: int):
@@ -321,16 +321,17 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return self._required
 
     @external(readonly=True)
-    def getTransactionInfo(self, _transactionId: int) -> bytes:
+    def getTransactionInfo(self, _transactionId: int) -> dict:
         if self._transactions[_transactionId] is not None:
-            return {_transactionId: self._transactions[_transactionId].to_dict()}
+            transaction = Transaction.from_bytes(self._transactions[_transactionId])
+            return {_transactionId: transaction.to_dict()}
         else:
             return None
 
     @external(readonly=True)
     def getTransactionsExecuted(self, _transactionId: int) -> bool:
         if self._transactions[_transactionId] is not None:
-            return self._transactions[_transactionId][0]
+            return bool(self._transactions[_transactionId][0])
         else:
             return None
 
@@ -344,10 +345,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
         wallet_owner_list = []
         wallet_owners_count = len(self._wallet_owners)
+
         for idx in range(_offset, _offset + _count):
             if idx >= wallet_owners_count:
                 break
-            wallet_owner_list.append(self._wallet_owners[idx])
+            wallet_owner_list.append(str(self._wallet_owners[idx]))
 
         return wallet_owner_list
 
@@ -365,11 +367,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
         confirmed_wallet_owners = []
         wallet_owners_count = len(self._wallet_owners)
+
         for idx in range(_offset, _offset + _count):
             if idx >= wallet_owners_count:
                 break
             if self._confirmations[_transactionId][self._wallet_owners[idx]]:
-                confirmed_wallet_owners.append(self._wallet_owners[idx])
+                confirmed_wallet_owners.append(str(self._wallet_owners[idx]))
 
         return confirmed_wallet_owners
 
@@ -382,26 +385,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             tx_count += self._executed_transaction_count
 
         return tx_count
-
-    #todo: could be removed
-    @external(readonly=True)
-    def getTransactionIds(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True)-> list:
-        self._only_positive_number(_offset, _count)
-
-        if _count > self._MAX_DATA_REQUEST_AMOUNT:
-            raise IconScoreException("Requests that exceed the allowed amount")
-
-        transaction_ids = []
-        total_transaction_count = self._executed_transaction_count + self._pending_transaction_count
-
-        # prevent searching not existed transaction
-        _count = _offset + _count if total_transaction_count >= _offset + _count else total_transaction_count
-
-        for tx_id in range(_offset, _count):
-            if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
-                transaction_ids.append(tx_id)
-
-        return transaction_ids
 
     @external(readonly=True)
     def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True)-> list:

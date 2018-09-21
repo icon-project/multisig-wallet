@@ -46,9 +46,9 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
         self.assertEqual(int(True), tx_results[0].status)
 
         # success case: revoke using confirmed wallet owner
-        confirmed_owner = self._owner1
+        confirmed_owner1 = self._owner1
         confirm_tx_params = {'_transactionId': '0x00'}
-        confirm_tx = self._make_score_call_tx(addr_from=confirmed_owner,
+        confirm_tx = self._make_score_call_tx(addr_from=confirmed_owner1,
                                               addr_to=self.multisig_score_addr,
                                               method='revokeTransaction',
                                               params=confirm_tx_params
@@ -89,5 +89,54 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
-        #Todo: need more tests
+        # failure case: try revoke transaction which is already executed
+
+        # confirm transaction using owner1, 2
+        confirmed_owner1 = self._owner1
+        confirmed_owner2 = self._owner2
+        confirm_tx_params = {'_transactionId': '0x00'}
+        confirm_tx1 = self._make_score_call_tx(addr_from=confirmed_owner1,
+                                               addr_to=self.multisig_score_addr,
+                                               method='confirmTransaction',
+                                               params=confirm_tx_params
+                                               )
+        confirm_tx_params = {'_transactionId': '0x00'}
+        confirm_tx2 = self._make_score_call_tx(addr_from=confirmed_owner2,
+                                               addr_to=self.multisig_score_addr,
+                                               method='confirmTransaction',
+                                               params=confirm_tx_params
+                                               )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx1, confirm_tx2])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(True, tx_results[0].status)
+        self.assertEqual(True, tx_results[1].status)
+
+        # check transaction executed.
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionsExecuted",
+                "params": {"_transactionId": "0x00"}
+            }
+        }
+        response = self._query(query_request)
+        self.assertEqual(True, response)
+
+        # try to revoke confirmation of the transaction which is already executed
+        confirmed_owner1 = self._owner1
+        confirm_tx_params = {'_transactionId': '0x00'}
+        confirm_tx = self._make_score_call_tx(addr_from=confirmed_owner1,
+                                              addr_to=self.multisig_score_addr,
+                                              method='revokeTransaction',
+                                              params=confirm_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
+        self._write_precommit_state(prev_block)
+        expected_revert_massage = "transaction id '0' has already been executed"
+        actual_revert_massage = tx_results[0].failure.message
+        self.assertEqual(expected_revert_massage, actual_revert_massage)
+
 

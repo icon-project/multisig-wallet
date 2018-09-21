@@ -17,7 +17,6 @@
 from tests.test_integrate_base import TestIntegrateBase
 
 
-
 class TestIntegrateSendIcx(TestIntegrateBase):
     def setUp(self):
         super().setUp()
@@ -113,6 +112,34 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         response = self._query(query_request, "icx_getBalance")
         self.assertEqual(9990, response)
 
+        # failure case: when confirming to already executed transaction,
+        # transaction shouldn't be executed again.
+        confirm_tx_params = {'_transactionId': '0x00'}
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner3,
+                                              addr_to=self.multisig_score_addr,
+                                              method='confirmTransaction',
+                                              params=confirm_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(int(True), tx_results[0].status)
+
+        # check the token score address' icx
+        query_request = {
+            "address": self.token_score_addr
+        }
+
+        expected_token_score_icx = 10
+        actual_token_score_icx = self._query(query_request, "icx_getBalance")
+        self.assertEqual(expected_token_score_icx, actual_token_score_icx)
+
+        # check multisig wallet score's icx(should be 9990)
+        query_request = {
+            "address": self.multisig_score_addr
+        }
+        response = self._query(query_request, "icx_getBalance")
+        self.assertEqual(9990, response)
+
     def test_send_icx_to_eoa(self):
         # success case: send icx to eoa(owner4)
 
@@ -185,5 +212,3 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         }
         response = self._query(query_request, "icx_getBalance")
         self.assertEqual(9990, response)
-
-

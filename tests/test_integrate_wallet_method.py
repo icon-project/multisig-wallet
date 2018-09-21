@@ -28,18 +28,19 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
         # failure case: call method using normal owner
         # all external method which change the state of wallet(e.g. requirement) should be called by own wallet
         change_requirement_params = {"_required": "3"}
-
         change_requirement_tx = self._make_score_call_tx(addr_from=self._owner1,
                                                          addr_to=self.multisig_score_addr,
                                                          method="changeRequirement",
                                                          params=change_requirement_params
                                                          )
+
         add_wallet_owner_params = {"_walletOwner": str(self._owner4)}
         add_wallet_owner_tx = self._make_score_call_tx(addr_from=self._owner1,
                                                        addr_to=self.multisig_score_addr,
                                                        method="addWalletOwner",
                                                        params=add_wallet_owner_params
                                                        )
+
         replace_wallet_owner_params = {"_walletOwner": str(self._owner1), "_newWalletOwner": str(self._owner4)}
 
         replace_wallet_owner_tx = self._make_score_call_tx(addr_from=self._owner1,
@@ -47,6 +48,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
                                                            method="replaceWalletOwner",
                                                            params=replace_wallet_owner_params
                                                            )
+
         remove_wallet_owner_params = {"_walletOwner": str(self._owner1)}
         remove_wallet_owner_tx = self._make_score_call_tx(addr_from=self._owner1,
                                                           addr_to=self.multisig_score_addr,
@@ -54,28 +56,25 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
                                                           params=remove_wallet_owner_params
                                                           )
 
-
         prev_block, tx_results = self._make_and_req_block([change_requirement_tx,
                                                            add_wallet_owner_tx,
                                                            replace_wallet_owner_tx,
                                                            remove_wallet_owner_tx])
 
         self._write_precommit_state(prev_block)
-        self.assertEqual(int(False), tx_results[0].status)
-        self.assertEqual(int(False), tx_results[0].status)
-        self.assertEqual(int(False), tx_results[0].status)
-        self.assertEqual(int(False), tx_results[0].status)
+        for tx_result in tx_results:
+            self.assertEqual(int(False), tx_result.status)
 
     def test_add_wallet_owner(self):
         # success case: add wallet owner4 successfully
-        add_owner_params = [
+        add_wallet_owner_params = [
             {"name": "_walletOwner",
              "type": "Address",
              "value": str(self._owner4)}
         ]
         submit_tx_params = {"_destination": str(self.multisig_score_addr),
                             "_method": "addWalletOwner",
-                            "_params": json.dumps(add_owner_params),
+                            "_params": json.dumps(add_wallet_owner_params),
                             "_description": "add owner4 in wallet"}
 
         add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
@@ -110,18 +109,18 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3, self._owner4]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner3), str(self._owner4)]
         self.assertEqual(response, expected_owners)
 
         # failure case: add already exist wallet owner
-        add_owner_params = [
+        add_wallet_owner_params = [
             {"name": "_walletOwner",
              "type": "Address",
              "value": str(self._owner1)}
         ]
         submit_tx_params = {"_destination": str(self.multisig_score_addr),
                             "_method": "addWalletOwner",
-                            "_params": json.dumps(add_owner_params),
+                            "_params": json.dumps(add_wallet_owner_params),
                             "_description": "add already exist wallet owner"}
 
         add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
@@ -161,7 +160,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3, self._owner4]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner3), str(self._owner4)]
         self.assertEqual(response, expected_owners)
 
     def test_replace_wallet_owner(self):
@@ -212,7 +211,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner4]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner4)]
         self.assertEqual(expected_owners, response)
 
         # failure case: try replace wallet owner who is not listed
@@ -263,7 +262,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner4]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner4)]
         self.assertEqual(expected_owners, response)
 
         # check execution failure
@@ -319,7 +318,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner4]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner4)]
         self.assertEqual(expected_owners, response)
 
         # check execution failure
@@ -376,7 +375,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2, self._owner3]
+        expected_owners = [str(self._owner1), str(self._owner2), str(self._owner3)]
         self.assertEqual(expected_owners, response)
 
         # success case: remove wallet owner successfully(remove owner3)
@@ -440,7 +439,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2]
+        expected_owners = [str(self._owner1), str(self._owner2)]
         self.assertEqual(expected_owners, response)
 
         # check the wallet owner3 is not wallet owner
@@ -520,9 +519,8 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             }
         }
         response = self._query(query_request)
-        expected_owners = [self._owner1, self._owner2]
+        expected_owners = [str(self._owner1), str(self._owner2)]
         self.assertEqual(expected_owners, response)
-
 
     def test_change_requirement(self):
         # success case: change requirement 2 to 1
