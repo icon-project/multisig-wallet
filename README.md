@@ -26,18 +26,21 @@ First step is deploying multisig wallet SCORE. At the time of deployment, you ca
 
 ```json
 {
-    "_walletOwners": "hx4fd1~, hx9f31~, hxbf9~",
+    "_walletOwners": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71,hx07a2731037cfe59dbf76579d8ba1fbfc02616135,hxed36008ce6be8c8deb9acdfc05d1a06f5576a2db",
  	"_required": "2"
 }
 ```
 
-After deploying wallet, wallet owners can deposit ICX and tokens(simply 'send icx' and 'transfer' token to the wallet) and manage it. When using funds or changing Internally set conditions, use ```submitTransaction``` method. For example, if you want to send 10 ICX to the specific address, call ```submitTransaction``` with below parameters.
+After deploying wallet, wallet owners can deposit ICX and tokens to wallet (simply 'send icx' and 'transfer' token to the wallet) and manage it. 
+
+When using funds or changing Internally set conditions(e.g. add owner, remove owner, change requirements), use ```submitTransaction``` method. For example, if you want to send 10 ICX to the specific address, call ```submitTransaction``` with below parameters.
+
 ```json
 {
-    "_destination": "hx43fe2~",
+    "_destination": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
  	"_method": "",
     "_params": "",
-    "_description": "send 10 icx to token score",
+    "_description": "send 10 icx to owner1",
     "_value": "0x0a"
 }
 ```
@@ -58,6 +61,25 @@ Returns the requirements.
 def getRequirements(self) -> int:
 ```
 
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getRequirements",
+            "params": {}
+        }
+    }
+}
+```
+
 #### getTransactionInfo
 
 Returns the transaction data for each id.
@@ -65,6 +87,27 @@ Returns the transaction data for each id.
 ```python
 @external(readonly=True)
 def getTransactionInfo(self, _transactionId: int) -> dict:
+```
+
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getTransactionInfo",
+            "params": {
+                "_transactionId": "0x00"
+            }
+        }
+    }
+}
 ```
 
 #### getTransactionsExecuted
@@ -85,32 +128,119 @@ Return boolean which shows whether address is wallet owner or not.
 def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
 ```
 
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "checkIsWalletOwner",
+            "params": {
+                "_walletOwner": "hx07a2731037cfe59dbf76579d8ba1fbfc02616135"
+            }
+        }
+    }
+}
+```
+
 #### getWalletOwners
 
 Return list of wallet owners.
 
 ```python
 @external(readonly=True)
-def getWalletOwners(self, _from: int, _to: int)-> list:
+def getWalletOwners(self, _offset: int, _count: int)-> list:
+```
+
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getWalletOwners",
+            "params": {
+                "_offset": "0x00",
+                "_count": "0x0A"
+            }
+        }
+    }
+}
 ```
 
 #### getConfirmationCount
 
-Return each transactions' confirmation count.
+Return certain transactions' confirmation count(search by transaction id).
 
 ```python
 @external(readonly=True)
 def getConfirmationCount(self, _transactionId: int)-> int:
 ```
 
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getConfirmationCount",
+            "params": {
+                "_transactionId": "0x00"
+            }
+        }
+    }
+}
+```
+
 #### getConfirmations
 
-Return list of wallet owner who have been confirmed to the transaction.
+Return list of wallet owner who have been confirmed to the certain transaction.
 
 ```python
 @external(readonly=True)
-def getConfirmations(self, _from: int, _to: int, _transactionId: int)-> list:
+def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> list:
 ```
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getConfirmations",
+            "params": {
+                "_offset": "0x00",
+                "_count": "0x0A",
+                "_transactionId": "0x00"
+            }
+        }
+    }
+}
+```
+
 #### getTransactionCount
 
 Return total number of transactions which is submitted in the wallet.
@@ -119,6 +249,28 @@ Return total number of transactions which is submitted in the wallet.
 @external(readonly=True)
 def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
 ```
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getTransactionCount",
+            "params": {
+                "_pending": "0x00",
+                "_executed": "0x01"
+            }
+        }
+    }
+}
+```
+
 #### getTransactionList
 
 Return list of transaction.
@@ -126,6 +278,30 @@ Return list of transaction.
 ```python
 @external(readonly=True)
 def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True)-> list:
+```
+
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
+        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "dataType": "call",
+        "data": {           
+            "method": "getTransactionList",
+            "params": {
+                "_offset": "0x00",
+                "_count": "0x0A",
+                "_pending": "0x00",
+                "_executed": "0x01"
+            }
+        }
+    }
+}
 ```
 
 
@@ -144,6 +320,52 @@ def submitTransaction(self, _destination: Address, _method: str="", _params: str
 
 ```
 
+**Example**
+
+```_destination``` is the score address which ```_method``` is defined in. 
+
+```_method``` is the name of method which is to be executed when the number of confirmations meets 'requrement'.
+
+```_params``` is stringified JSON format. this data will be converted and used as the arguments of _method when executing _method. Below is the format. **name** is parameter's name, **type** is parameter's type, **value** is actual argument value. 
+
+```json
+[
+    {'name': '_walletOwner','type': 'Address','value':'hxef73db~'},
+    {'name': '_newWalletOwner','type': 'Address','value': 'hxed360~'}
+    ...
+]
+```
+
+```_description``` is a detailed description of the transaction.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "icx_sendTransaction",
+  "params": {
+    "version": "0x3",
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "value": "0x0",
+    "stepLimit": "0x3000000",
+    "timestamp": "0x573117f1d6568",
+    "nid": "0x3",
+    "nonce": "0x1",
+    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+    "dataType": "call",
+    "data": {
+      "method": "submitTransaction",
+      "params": {
+        "_destination": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "_method":"addWalletOwner",
+        "_params":"[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hx1262526a4da004550021b5f9d249b9c7d98b5892\"}]",
+        "_description": "add owner4 in wallet"
+      }
+    }
+  },
+  "id": 1
+}
+```
+
 #### confirmTransaction
 
 Confirm a transaction corresponding to ```_transactionId```. as soon as a transaction's confirmation count meets  'requrement', transaction is executed. Only wallet owners can call this method.
@@ -152,6 +374,34 @@ Confirm a transaction corresponding to ```_transactionId```. as soon as a transa
 @external
 def confirmTransaction(self, _transactionId: int):
 ```
+
+**Example**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "icx_sendTransaction",
+  "params": {
+    "version": "0x3",
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "value": "0x0",
+    "stepLimit": "0x3000000",
+    "timestamp": "0x573117f1d6568",
+    "nid": "0x3",
+    "nonce": "0x1",
+    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+    "dataType": "call",
+    "data": {
+      "method": "confirmTransaction",
+      "params": {
+        "_transactionId": "0x00"
+      }
+    }
+  },
+  "id": 1
+}
+```
+
 #### revokeTransaction
 
 Revoke confirmation of a transaction corresponding to  ```_transactionId```.  Only already confirmed wallet owner can revoke there own confirmation of a transaction. Wallet owner can't revoke others confirmation.
@@ -161,10 +411,38 @@ Revoke confirmation of a transaction corresponding to  ```_transactionId```.  On
 def revokeTransaction(self, _transactionId: int):
 ```
 
+**Example**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "icx_sendTransaction",
+  "params": {
+    "version": "0x3",
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "value": "0x0",
+    "stepLimit": "0x3000000",
+    "timestamp": "0x573117f1d6568",
+    "nid": "0x3",
+    "nonce": "0x1",
+    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+    "dataType": "call",
+    "data": {
+      "method": "revokeTransaction",
+      "params": {
+        "_transactionId": "0x00"
+      }
+    }
+  },
+  "id": 1
+}
+```
+
+
 
 ### Methods(Only called by wallet)
 
-These methods only can be called by multisig wallet SCORE itself. If you want to execute these methods, call ```submitTransaction``` and input method's information as a parameter.
+These methods only can be called by multisig wallet SCORE itself. **In short, you can not call those methods directly(will be failure)**. If you want to execute these methods, call ```submitTransaction``` and input method's information as a parameter. 
 
 #### addWalletOwner
 
@@ -257,7 +535,7 @@ Must trigger on deposit ICX to MultiSig Wallet SCORE.
 def Deposit(self, _sender: Address, _value: int):
         pass
 ```
-#### DepsitToken
+#### DepositToken
 
 Must trigger on deposit token to MultiSig Wallet SCORE.
 
@@ -299,4 +577,3 @@ def RequirementChange(self, _required: int):
 
 ## References
 * [https://github.com/gnosis/MultiSigWallet](https://github.com/gnosis/MultiSigWallet)
-
