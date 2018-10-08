@@ -69,14 +69,24 @@ def getRequirements(self) -> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getRequirements",
             "params": {}
         }
     }
+}
+```
+
+**Call result **
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": "0x2",
+    "id": 1
 }
 ```
 
@@ -97,8 +107,8 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionInfo",
@@ -110,6 +120,25 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
 }
 ```
 
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": {
+        0: {
+        "_executed": "0x1",
+        "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "_value": "0x0",
+        "_method": "addWalletOwner",
+        "_params": "[{"name":"_walletOwner","type":"Address","value":"hx1262526a4da004550021b5f9d249b9c7d98b5892"}]",
+        "_description": "add owner4 in wallet"
+        }
+    },
+    "id": 1
+}
+```
+
 #### getTransactionsExecuted
 
 Returns boolean which shows whether transaction is executed or not.
@@ -117,6 +146,37 @@ Returns boolean which shows whether transaction is executed or not.
 ```python
 @external(readonly=True)
 def getTransactionsExecuted(self, _transactionId: int) -> bool:
+```
+
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "dataType": "call",
+        "data": {           
+            "method": "getTransactionsExecuted",
+            "params": {
+                "_transactionId": "0x00"
+            }
+        }
+    }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": "0x1",
+    "id": 1
+}
 ```
 
 ####  checkIsWalletOwner
@@ -136,8 +196,8 @@ def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "checkIsWalletOwner",
@@ -146,6 +206,16 @@ def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
             }
         }
     }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": "0x0",
+    "id": 1
 }
 ```
 
@@ -166,8 +236,8 @@ def getWalletOwners(self, _offset: int, _count: int)-> list:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getWalletOwners",
@@ -177,6 +247,21 @@ def getWalletOwners(self, _offset: int, _count: int)-> list:
             }
         }
     }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": [
+      "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+      "hxd980b07d43d1df399392f8871d6ec7c975f3e832",
+      "hx4873b94352c8c1f3b2f09aaeccea31ce9e90bd31",
+      "hx1262526a4da004550021b5f9d249b9c7d98b5892"
+    ],
+    "id": 1
 }
 ```
 
@@ -197,8 +282,8 @@ def getConfirmationCount(self, _transactionId: int)-> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getConfirmationCount",
@@ -207,6 +292,16 @@ def getConfirmationCount(self, _transactionId: int)-> int:
             }
         }
     }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": "0x2",
+    "id": 1
 }
 ```
 
@@ -226,11 +321,11 @@ def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> lis
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-            "method": "getConfirmations",
+		   "method": "getConfirmations",
             "params": {
                 "_offset": "0x00",
                 "_count": "0x0A",
@@ -238,6 +333,19 @@ def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> lis
             }
         }
     }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": [
+      "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+      "hxd980b07d43d1df399392f8871d6ec7c975f3e832"
+    ],
+    "id": 1
 }
 ```
 
@@ -257,8 +365,8 @@ def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionCount",
@@ -268,6 +376,16 @@ def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
             }
         }
     }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": "0x1",
+    "id": 1
 }
 ```
 
@@ -288,15 +406,15 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-        "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionList",
             "params": {
                 "_offset": "0x00",
                 "_count": "0x0A",
-                "_pending": "0x00",
+                "_pending": "0x01",
                 "_executed": "0x01"
             }
         }
@@ -304,7 +422,32 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
 }
 ```
 
+**Call result**
 
+```json
+{
+    "jsonrpc": "2.0",
+    "result": [
+        0: {
+            "_executed": "0x1",
+            "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+            "_value": "0x0",
+            "_method": "addWalletOwner",
+            "_params": "[{"name":"_walletOwner","type":"Address","value":"hx1262526a4da004550021b5f9d249b9c7d98b5892"}]",
+            "_description": "add owner4 in wallet"
+            },
+        1: {
+            "_executed": "0x0",
+            "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+            "_value": "0x0",
+            "_method": "addWalletOwner",
+            "_params": "[{"name":"_walletOwner","type":"Address","value":"hxbedeeadea922dc7f196e22eaa763fb01aab0b64c"}]",
+            "_description": "add owner5 in wallet"
+        }
+    ],
+    "id": 1
+}
+```
 
 ### Methods
 
@@ -318,8 +461,6 @@ Submit transaction which is to be executed when the number of confirmations meet
 @external
 def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
 ```
-
-**Example**
 
 ```_destination``` is the score address which ```_method``` is defined in. 
 
@@ -340,24 +481,25 @@ Below is an example of replaceWalletOwner. After make this format, you have to s
 
 ```_description``` is a detailed description of the transaction.
 
+**Example**
+
 ```json
 {
   "jsonrpc": "2.0",
   "method": "icx_sendTransaction",
   "params": {
     "version": "0x3",
-    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
     "value": "0x0",
     "stepLimit": "0x3000000",
-    "timestamp": "0x573117f1d6568",
     "nid": "0x3",
     "nonce": "0x1",
-    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+    "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
     "dataType": "call",
     "data": {
       "method": "submitTransaction",
       "params": {
-        "_destination": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+        "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "_method":"addWalletOwner",
         "_params":"[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hx1262526a4da004550021b5f9d249b9c7d98b5892\"}]",
         "_description": "add owner4 in wallet"
@@ -365,6 +507,46 @@ Below is an example of replaceWalletOwner. After make this format, you have to s
     }
   },
   "id": 1
+}
+```
+
+**Sendtx result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": {
+        "txHash": "0xca72bef2d0f3e77a6621dc20bf9f47d34e87f30b4f4717be9edfa2e2f15d24fa",
+        "blockHeight": "0x4",
+        "blockHash": "0xfc3ec6b4777b108f2c7fad4ee703a7f712d68b654a9ccb042ffc8614795f09a8",
+        "txIndex": "0x0",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "stepUsed": "0x10bad0",
+        "stepPrice": "0x0",
+        "cumulativeStepUsed": "0x10bad0",
+        "eventLogs": [
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "Submission(int)",
+                    "0x0"
+                ],
+                "data": []
+            },
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "Confirmation(Address,int)",
+                    "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+                    "0x0"
+                ],
+                "data": []
+            }
+        ],
+        "logsBloom": "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000060000000000011000000000000000000000000000000000000000000000000000a0000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002800000000004000000000000000000000000000000000000000000000000000100000000003200000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+    },
+    "id": 1
 }
 ```
 
@@ -385,13 +567,12 @@ def confirmTransaction(self, _transactionId: int):
   "method": "icx_sendTransaction",
   "params": {
     "version": "0x3",
-    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "from": "hxd980b07d43d1df399392f8871d6ec7c975f3e832",
     "value": "0x0",
-    "stepLimit": "0x3000000",
-    "timestamp": "0x573117f1d6568",
+    "stepLimit": "0x30000000",
     "nid": "0x3",
     "nonce": "0x1",
-    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+    "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
     "dataType": "call",
     "data": {
       "method": "confirmTransaction",
@@ -401,6 +582,54 @@ def confirmTransaction(self, _transactionId: int):
     }
   },
   "id": 1
+}
+```
+
+**Sendtx result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": {
+        "txHash": "0x07f407914ae8a37183d588d75e9a9cfead3ce2ebc29af4c809e0cff493e7baaa",
+        "blockHeight": "0x5",
+        "blockHash": "0x4d28315fd2de5095ef6a8da3f39644be126ae29fef7ee89be52837acf50c4be6",
+        "txIndex": "0x0",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "stepUsed": "0x1026c4",
+        "stepPrice": "0x0",
+        "cumulativeStepUsed": "0x1026c4",
+        "eventLogs": [
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "Confirmation(Address,int)",
+                    "hxd980b07d43d1df399392f8871d6ec7c975f3e832",
+                    "0x0"
+                ],
+                "data": []
+            },
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "WalletOwnerAddition(Address)",
+                    "hx1262526a4da004550021b5f9d249b9c7d98b5892"
+                ],
+                "data": []
+            },
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "Execution(int)",
+                    "0x0"
+                ],
+                "data": []
+            }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000011000000000000000000000000000000000000000000000000000080000000000820000000000000000000000000000000000000000000000000002000000000221000000000000000000000000000000000000000000000000002800000000004000000000000000000000000000000000000000000000000000100000000002000000000000000000000000000000000000000000000000000040000000000020000000000000",
+        "status": "0x1"
+    },
+    "id": 1
 }
 ```
 
@@ -432,12 +661,45 @@ def revokeTransaction(self, _transactionId: int):
     "data": {
       "method": "revokeTransaction",
       "params": {
-        "_transactionId": "0x00"
+        "_transactionId": "0x01"
       }
     }
   },
   "id": 1
 }
+```
+
+**Sendtx result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": {
+        "txHash": "0x70a5c03cd41d205b5b93abf57e53160d3f58679b1f3c254a10db9d220ecfac21",
+        "blockHeight": "0x7",
+        "blockHash": "0x92558d91cc52f0ff75686d8b5691bf5cdcbd586eff625b9c93750b510d324887",
+        "txIndex": "0x0",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "stepUsed": "0xf9c4a",
+        "stepPrice": "0x0",
+        "cumulativeStepUsed": "0xf9c4a",
+        "eventLogs": [
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "Revocation(Address,int)",
+                    "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+                    "0x1"
+                ],
+                "data": []
+            }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000400000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000020000000001300000000000000000000000000000000000000000000000000000000000000001000000000000",
+        "status": "0x1"
+    },
+    "id": 1
+}
+
 ```
 
 
