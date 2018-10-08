@@ -327,7 +327,7 @@ def submitTransaction(self, _destination: Address, _method: str="", _params: str
 
 ```_params``` is stringified JSON data. this data is used as the arguments of the method(```_method```) when executing. Below is the format. **name** is parameter's name, **type** is parameter's type(support "int", "str", "bool", "Address", "bytes" , **value** is actual argument value. 
 
-![](C:\Users\thdnt\OneDrive\바탕 화면\그림1.png)
+![](https://image.ibb.co/mAWfB9/1.png)
 
 Below is an example of replaceWalletOwner. After make this format, you have to stringify it.
 

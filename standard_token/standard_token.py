@@ -64,6 +64,7 @@ class StandardToken(IconScoreBase):
 
     @external
     def transfer(self, _to: Address, _value: int, _data: bytes=None):
+        #
         if _data is None:
             _data = b'None'
         self._transfer(self.msg.sender, _to, _value, _data)
