@@ -33,7 +33,7 @@ First step is deploying multisig wallet SCORE. At the time of deployment, you ca
 
 After deploying wallet, wallet owners can deposit ICX and tokens to wallet (simply 'send icx' and 'transfer' token to the wallet) and manage it. 
 
-When using funds or changing Internally set conditions(e.g. add owner, remove owner, change requirements), use ```submitTransaction``` method. For example, if you want to send 10 ICX to the specific address, call ```submitTransaction``` with below parameters.
+If you want to use funds(e.g. send icx, token) or changing Internally set conditions(e.g. add owner, remove owner, change requirements), use ```submitTransaction``` method. For example, if you want to send 10 ICX to the specific address, call ```submitTransaction``` with below parameters.
 
 ```json
 {
@@ -312,12 +312,11 @@ Below is a list of the method which wallet owner can call.
 
 #### submitTransaction
 
-Submit transaction which is to be executed when the number of confirmations meets 'requrement'. Only wallet owners can call this method. The wallet owner who has called this method be confirmed to this transaction as soon as submit transaction successfully.
+Submit transaction which is to be executed when the number of confirmations meets 'requirement'. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as submit transaction successfully. 
 
 ```python
 @external
 def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
-
 ```
 
 **Example**
@@ -326,13 +325,16 @@ def submitTransaction(self, _destination: Address, _method: str="", _params: str
 
 ```_method``` is the name of method which is to be executed when the number of confirmations meets 'requrement'.
 
-```_params``` is stringified JSON format. this data will be converted and used as the arguments of _method when executing _method. Below is the format. **name** is parameter's name, **type** is parameter's type, **value** is actual argument value. 
+```_params``` is stringified JSON data. this data is used as the arguments of the method(```_method```) when executing. Below is the format. **name** is parameter's name, **type** is parameter's type(support "int", "str", "bool", "Address", "bytes" , **value** is actual argument value. 
+
+![](C:\Users\thdnt\OneDrive\바탕 화면\그림1.png)
+
+Below is an example of replaceWalletOwner. After make this format, you have to stringify it.
 
 ```json
 [
-    {'name': '_walletOwner','type': 'Address','value':'hxef73db~'},
-    {'name': '_newWalletOwner','type': 'Address','value': 'hxed360~'}
-    ...
+    {"name": "_walletOwner","type": "Address","value":"hxef73db~"},
+    {"name": "_newWalletOwner","type": "Address","value": "hxed360~"}
 ]
 ```
 
@@ -577,3 +579,4 @@ def RequirementChange(self, _required: int):
 
 ## References
 * [https://github.com/gnosis/MultiSigWallet](https://github.com/gnosis/MultiSigWallet)
+
