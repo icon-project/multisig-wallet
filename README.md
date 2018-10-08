@@ -80,7 +80,7 @@ def getRequirements(self) -> int:
 }
 ```
 
-**Call result **
+**Call result**
 
 ```json
 {
@@ -468,19 +468,17 @@ def submitTransaction(self, _destination: Address, _method: str="", _params: str
 
 ```_params``` is stringified JSON data. this data is used as the arguments of the method(```_method```) when executing. Below is the format. **name** is parameter's name, **type** is parameter's type(support "int", "str", "bool", "Address", "bytes" , **value** is actual argument value. 
 
+```_description``` is a detailed description of the transaction.
+
 ![](https://image.ibb.co/mAWfB9/1.png)
 
 Below is an example of replaceWalletOwner. After make this format, you have to stringify it.
-
 ```json
 [
     {"name": "_walletOwner","type": "Address","value":"hxef73db~"},
     {"name": "_newWalletOwner","type": "Address","value": "hxed360~"}
 ]
 ```
-
-```_description``` is a detailed description of the transaction.
-
 **Example**
 
 ```json
