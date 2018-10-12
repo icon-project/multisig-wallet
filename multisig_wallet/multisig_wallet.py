@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from .type_converter.type_converter import params_type_converter
 from .qualification_check.qualification_check import *
 from .transaction import Transaction
@@ -105,7 +103,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # "" will be changed to {} when finally execute transaction. so doesn't check format
         if json_formatted_params != "" and json_formatted_params is not None:
             try:
-                params = json.loads(json_formatted_params)
+                params = json_loads(json_formatted_params)
                 for param in params:
                     params_type_converter(param["type"], param["value"])
             except ValueError as e:
@@ -232,7 +230,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # if params == "" -> {}
         method_params = {}
         if transaction.params != "":
-            params = json.loads(transaction.params)
+            params = json_loads(transaction.params)
             for param in params:
                 method_params[param["name"]] = params_type_converter(param["type"], param["value"])
         try:
