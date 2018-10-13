@@ -14,13 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from struct import Struct, pack, unpack
+from struct import pack, unpack
 
 from iconservice import *
 
-# addr, value fix
+# address, value fix
 ADDRESS_BYTE_LEN = 21
 DEFAULT_VALUE_BYTES = 16
+# fixed struct data size(bytes)
+FIXED_STRUCT_SIZE = 42
 DATA_BYTE_ORDER = "big"
 
 MAX_METHOD_LEN = 100
@@ -30,7 +32,8 @@ MAX_DESCRIPTION_LEN = 1000
 
 class Transaction:
     # format: executed flag 1bytes + address 21bytes + value 16bytes + format length 1bytes
-    _fixed_struct = Struct(f">Bx{ADDRESS_BYTE_LEN}sx{DEFAULT_VALUE_BYTES}sxB")
+    # (total 42 bytes including pad 3bytes)
+    _fixed_struct_format = f">Bx{ADDRESS_BYTE_LEN}sx{DEFAULT_VALUE_BYTES}sxB"
 
     def __init__(self,
                  destination: Address,
@@ -99,14 +102,13 @@ class Transaction:
 
     @staticmethod
     def from_bytes(buf: bytes):
-        fixed_variables_total_len = Transaction._fixed_struct.size
         transaction_executed, destination, value, flexible_struct_format_len = \
-            Transaction._fixed_struct.unpack(buf[:fixed_variables_total_len])
+            unpack(Transaction._fixed_struct_format, buf[:FIXED_STRUCT_SIZE])
 
         flexible_struct_format = \
-            buf[fixed_variables_total_len: fixed_variables_total_len + flexible_struct_format_len].decode()
+            buf[FIXED_STRUCT_SIZE: FIXED_STRUCT_SIZE + flexible_struct_format_len].decode()
         method, params, description = unpack(flexible_struct_format,
-                                             buf[fixed_variables_total_len + flexible_struct_format_len:])
+                                             buf[FIXED_STRUCT_SIZE + flexible_struct_format_len:])
 
         return Transaction(executed=transaction_executed,
                            destination=Address.from_bytes(destination.strip(b'\x00')),
@@ -121,7 +123,8 @@ class Transaction:
         if flexible_struct_format_len > 255:
             revert("too long parameters")
 
-        packed_fixed_variables = self._fixed_struct.pack(
+        packed_fixed_variables = pack(
+            Transaction._fixed_struct_format,
             self.executed,
             self.destination.to_bytes(),
             self._value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER),
