@@ -1,28 +1,28 @@
 ## Multi Signature Wallet SCORE
-This document describes a Multi Signature Wallet SCORE and provides guide line and APIs of how to use this service.
+This document describes a Multi Signature Wallet SCORE and provides guidelines and APIs about how to use this service.
 
 ## Definition & Purpose
 
-Multi Signature Wallet is a SCORE that makes more than one users managing ICON funds safely.  Multi Signature Wallet can prevent one person from running off with the icx or tokens and reduce key person risk in case one person is incapacitated or loses their keys. We adopted multisig wallet mechanism inspired by **gnosis**.
+A Multi Signature Wallet is a SCORE that enables more than one user to manage their ICON funds safely. Such wallet can prevent one person from running off with the stored ICX or tokens and reduce the risk in case of one person is incapacitated or loses their keys. We adopted the multisig wallet mechanism inspired by **gnosis**.
 
 ## How To Use
 ### Definition
 
 #### Wallet
-SCORE which ICX and tokens are stored in. stored icx and tokens can be used(transferred) only when satisfying Internally set conditions of wallet.
+SCORE in which ICX and tokens are stored in. Stored ICX and tokens can be used (transferred) only when the wallet conditions declared internally are satisfied.
 
 #### Wallet owner
-Addresses who have Participation rights of Wallet SCORE. 
+Addresses who have participation rights of the Wallet SCORE. 
 
 #### Transaction
-Transaction which wallet owner initiate to change wallet's state(e.g. transfer tokens or ICX which is stored in wallet, add new wallet owner, change requirements of confirmations(2to3 -> 3to3) etc).
+Transaction which wallet owner initiate to change wallet's state (e.g. transfer tokens or ICX which is stored in wallet, add new wallet owner, change requirements of confirmations (2to3 -> 3to3) etc).
 
 #### Requirement
-The number of approvals of the wallet owners required for the transaction to be executed.
+The number of approvals from the wallet owners required for the transaction to be executed.
 
 ### Logic
 
-First step is deploying multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement.  For examples, if you want to use wallet which is set three wallet owners and needs two confirmations for executing a transaction(2 to 3), you have to input two parameters 1) three wallet addresses of string,  2) required '2' when deploying wallet.
+The first step is to deploy a multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement. For example, if you want to use a wallet which sets three wallet owners and needs two confirmations for executing a transaction (2 to 3), you have to input two parameters : 1) fill the `_walletOwners` field with three wallet addresses in a comma-separated string, 2) fill the `_required` field with '2' when deploying the wallet.
 
 ```json
 {
@@ -31,9 +31,9 @@ First step is deploying multisig wallet SCORE. At the time of deployment, you ca
 }
 ```
 
-After deploying wallet, wallet owners can deposit ICX and tokens to wallet (simply 'send icx' and 'transfer' token to the wallet) and manage it. 
+After deploying the wallet, wallet owners can deposit ICX and tokens to this wallet as usual and manage it. 
 
-If you want to use funds(e.g. send icx, token) or changing Internally set conditions(e.g. add owner, remove owner, change requirements), use ```submitTransaction``` method. For example, if you want to send 10 ICX to the specific address, call ```submitTransaction``` with below parameters.
+If you want to use funds (e.g. send ICX or token) or change the internally set conditions (e.g. add owner, remove owner, change requirements), use the `submitTransaction` method. For example, if you want to send 10 ICX to a specific address, call `submitTransaction` with below parameters.
 
 ```json
 {
@@ -44,13 +44,13 @@ If you want to use funds(e.g. send icx, token) or changing Internally set condit
     "_value": "0x0a"
 }
 ```
-After the transaction is registered, other wallet owners can confirm to this transaction using ```confirmTransaction``` method, and if the number of confirmations meets 'requrement', finally 'sending 10 icx' is executed. all transactions' information is saved in wallet eternally.
+After the transaction is registered, other wallet owners can confirm this transaction using the `confirmTransaction` method, and only if the number of confirmations meets the 'requirement' value then this transaction is executed. All transactions' information are saved in the wallet eternally.
 
 ## Specification
 
-### Methods(Read-only)
+### Methods (Read-only)
 
-Below is list of read-only method. by calling these method, you can get information of wallet.
+Below is the list of read-only methods. By calling these methods, you can get information from the wallet.
 
 #### getRequirements
 
@@ -92,7 +92,7 @@ def getRequirements(self) -> int:
 
 #### getTransactionInfo
 
-Returns the transaction data for each id.
+Returns the transaction data for each ID.
 
 ```python
 @external(readonly=True)
@@ -141,7 +141,7 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
 
 #### getTransactionsExecuted
 
-Returns boolean which shows whether transaction is executed or not.
+Returns a boolean which shows whether the transaction is executed or not.
 
 ```python
 @external(readonly=True)
@@ -181,7 +181,7 @@ def getTransactionsExecuted(self, _transactionId: int) -> bool:
 
 ####  checkIsWalletOwner
 
-Return boolean which shows whether address is wallet owner or not.
+Returns a boolean which shows whether a given address is a wallet owner or not.
 
 ```python
 @external(readonly=True)
@@ -221,7 +221,7 @@ def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
 
 #### getWalletOwners
 
-Return list of wallet owners.
+Returns a list of wallet owners.
 
 ```python
 @external(readonly=True)
@@ -267,7 +267,7 @@ def getWalletOwners(self, _offset: int, _count: int)-> list:
 
 #### getConfirmationCount
 
-Return certain transactions' confirmation count(search by transaction id).
+Returns a transaction confirmation count given a transaction ID.
 
 ```python
 @external(readonly=True)
@@ -307,7 +307,7 @@ def getConfirmationCount(self, _transactionId: int)-> int:
 
 #### getConfirmations
 
-Return list of wallet owner who have been confirmed to the certain transaction.
+Returns a list of wallet owners who have been confirmed by a given transaction.
 
 ```python
 @external(readonly=True)
@@ -351,7 +351,7 @@ def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> lis
 
 #### getTransactionCount
 
-Return total number of transactions which is submitted in the wallet.
+Returns the total number of transactions which is submitted in the wallet.
 
 ```python
 @external(readonly=True)
@@ -391,7 +391,7 @@ def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
 
 #### getTransactionList
 
-Return list of transaction.
+Returns a list of transactions.
 
 ```python
 @external(readonly=True)
@@ -451,28 +451,28 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
 
 ### Methods
 
-Below is a list of the method which wallet owner can call.  
+Below is a list of the methods that the wallet owners can call.  
 
 #### submitTransaction
 
-Submit transaction which is to be executed when the number of confirmations meets 'requirement'. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as submit transaction successfully. 
+Submit a transaction which is to be executed when the number of confirmations meets the 'requirement' value. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as the transaction is submitted successfully. 
 
 ```python
 @external
 def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
 ```
 
-```_destination``` is the score address which ```_method``` is defined in. 
+`_destination` is the SCORE address in which `_method` is defined in. 
 
-```_method``` is the name of method which is to be executed when the number of confirmations meets 'requrement'.
+`_method` is the name of the method that is to be executed when the number of confirmations meets the 'requrement' value.
 
-```_params``` is stringified JSON data. this data is used as the arguments of the method(```_method```) when executing. Below is the format. **name** is parameter's name, **type** is parameter's type(support "int", "str", "bool", "Address", "bytes" , **value** is actual argument value. 
+`_params` is a stringified JSON data. This data is used as the arguments of the method `_method` when it is executed. Below is the format. **name** is parameter's name, **type** is parameter's type (supported types are `int`, `str`, `bool`, `Address`, `bytes`), **value** is the actual argument value. 
 
-```_description``` is a detailed description of the transaction.
+`_description` is a detailed description of the transaction.
 
-![](https://image.ibb.co/mAWfB9/1.png)
+![](./images/submitTransaction_json_format.png)
 
-Below is an example of replaceWalletOwner. After make this format, you have to stringify it.
+Below is an example of a `replaceWalletOwner` method call. After writing the request in the JSON format, you have to stringify it.
 ```json
 [
     {"name": "_walletOwner","type": "Address","value":"hxef73db~"},
@@ -550,7 +550,7 @@ Below is an example of replaceWalletOwner. After make this format, you have to s
 
 #### confirmTransaction
 
-Confirm a transaction corresponding to ```_transactionId```. as soon as a transaction's confirmation count meets  'requrement', transaction is executed. Only wallet owners can call this method.
+Confirm a transaction corresponding to a ```_transactionId```. As soon as a transaction confirmation count meets the 'requirement' value, the transaction is executed. Only wallet owners can call this method.
 
 ```python
 @external
@@ -633,7 +633,7 @@ def confirmTransaction(self, _transactionId: int):
 
 #### revokeTransaction
 
-Revoke confirmation of a transaction corresponding to  ```_transactionId```.  Only already confirmed wallet owner can revoke there own confirmation of a transaction. Wallet owner can't revoke others confirmation.
+Revoke confirmation of a transaction corresponding to a ```_transactionId```. Only already confirmed wallet owners can revoke their own confirmation of a transaction. Wallet owners can't revoke others' confirmation.
 
 ```python
 @external
@@ -702,13 +702,13 @@ def revokeTransaction(self, _transactionId: int):
 
 
 
-### Methods(Only called by wallet)
+### Methods (only called by wallet)
 
-These methods only can be called by multisig wallet SCORE itself. **In short, you can not call those methods directly(will be failure)**. If you want to execute these methods, call ```submitTransaction``` and input method's information as a parameter. 
+These methods only can be called by the multisig wallet SCORE itself. **In short, you can not call those methods directly (or it will fail)**. If you want to execute these methods, call ```submitTransaction``` and input method's information as a parameter. 
 
 #### addWalletOwner
 
-Add new wallet owner. 
+Adds a new wallet owner.
 
 ```python
 @external
@@ -716,7 +716,7 @@ def addWalletOwner(self, _walletOwner: Address):
 ```
 #### replaceWalletOwner
 
-Replace existing wallet owner to new wallet owner.
+Replaces an existing wallet owner by a new wallet owner.
 
 ```python
 @external
@@ -724,7 +724,7 @@ def replaceWalletOwner(self, _walletOwner: Address, _newWalletOwner: Address):
 ```
 #### removeWalletOwner
 
-Remove existing wallet owner.
+Removes an existing wallet owner.
 
 ```python
 @external
@@ -732,7 +732,7 @@ def removeWalletOwner(self, _walletOwner: Address):
 ```
 #### changeRequirement
 
-Change requirement. ```_required``` can't exceed the number of wallet owner. 
+Change the requirement value. ```_required``` can't exceed the number of wallet owners. 
 
 ```python
 @external
@@ -754,7 +754,7 @@ def Confirmation(self, _sender: Address, _transactionId: int):
 ```
 #### Revocation
 
-Must trigger on revoke confirmation.
+Must trigger on any revoked confirmation.
 
 ```python
 @eventlog(indexed=2)
@@ -763,7 +763,7 @@ def Revocation(self, _sender: Address, _transactionId: int):
 ```
 #### Submission
 
-Must trigger on submit transaction.
+Must trigger on any submitted transaction.
 
 ```python
 @eventlog(indexed=1)
@@ -781,7 +781,7 @@ def Execution(self, _transactionId: int):
 ```
 #### ExecutionFailure
 
-Must trigger on a failure of the transaction execution.
+Must trigger on a failure during the transaction execution.
 
 ```python
 @eventlog(indexed=1)
@@ -790,7 +790,7 @@ def ExecutionFailure(self, _transactionId: int):
 ```
 #### Deposit
 
-Must trigger on deposit ICX to MultiSig Wallet SCORE.
+Must trigger on a ICX deposit event to a MultiSig Wallet SCORE.
 
 ```python
 @eventlog(indexed=1)
@@ -799,7 +799,7 @@ def Deposit(self, _sender: Address, _value: int):
 ```
 #### DepositToken
 
-Must trigger on deposit token to MultiSig Wallet SCORE.
+Must trigger on a token deposit event to a MultiSig Wallet SCORE.
 
 ```python
 @eventlog(indexed=1)
@@ -808,7 +808,7 @@ def DepositToken(self, _sender: Address, _value: int, _data: bytes):
 ```
 #### WalletOwnerAddition
 
-Must trigger on adding new wallet owner.
+Must trigger on adding a new wallet owner.
 
 ```python
 @eventlog(indexed=1)
@@ -817,7 +817,7 @@ def WalletOwnerAddition(self, _walletOwner: Address):
 ```
 #### WalletOwnerRemoval
 
-Must trigger on removing wallet owner.
+Must trigger on removing a wallet owner.
 
 ```python
 @eventlog(indexed=1)
@@ -826,7 +826,7 @@ def WalletOwnerRemoval(self, _walletOwner: Address):
 ```
 #### Requirement
 
-Must trigger on changing requirement.
+Must trigger on changing the requirement value.
 
 ```python
 @eventlog
