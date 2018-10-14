@@ -1,9 +1,9 @@
 ## Multi Signature Wallet SCORE
-This document describes a Multi Signature Wallet SCORE and provides guidelines and APIs about how to use this service.
+This document describes the inner workings of a Multi Signature Wallet SCORE and provides guidelines and APIs about how to use this service.
 
 ## Definition & Purpose
 
-A Multi Signature Wallet is a SCORE that enables more than one user to manage their ICON funds safely. Such wallet can prevent one person from running off with the stored ICX or tokens and reduce the risk in case of one person is incapacitated or loses their keys. We adopted the multisig wallet mechanism inspired by **gnosis**.
+A Multi Signature Wallet is a SCORE that enables more than one user to manage their ICON funds safely. Such wallet can prevent one person from running off with the stored ICX or tokens and reduce the risk in case of one person is incapacitated or loses their keys. We adopted the multisig wallet mechanism inspired by [**gnosis**](https://github.com/gnosis/MultiSigWallet).
 
 ## How To Use
 ### Definition
@@ -15,19 +15,19 @@ SCORE in which ICX and tokens are stored in. Stored ICX and tokens can be used (
 Addresses who have participation rights of the Wallet SCORE. 
 
 #### Transaction
-Transaction which wallet owner initiate to change wallet's state (e.g. transfer tokens or ICX which is stored in wallet, add new wallet owner, change requirements of confirmations (2to3 -> 3to3) etc).
+Initiated by a wallet owner, a transaction changes the wallet state (e.g. transfer tokens or ICX stored in the wallet, add a new wallet owner, change requirements of confirmations (2 to 3 -> 3 to 3), etc).
 
 #### Requirement
 The number of approvals from the wallet owners required for the transaction to be executed.
 
 ### Logic
 
-The first step is to deploy a multisig wallet SCORE. At the time of deployment, you can set wallet owners and requirement. For example, if you want to use a wallet which sets three wallet owners and needs two confirmations for executing a transaction (2 to 3), you have to input two parameters : 1) fill the `_walletOwners` field with three wallet addresses in a comma-separated string, 2) fill the `_required` field with '2' when deploying the wallet.
+The first step is to deploy a multisig wallet SCORE. At the time of deployment, you can set wallet owners and a requirement value. For example, if you want to use a wallet which sets three wallet owners and needs two confirmations for executing a transaction (2 to 3), you have to input two parameters : 1) fill the `_walletOwners` field with three wallet addresses in a comma-separated string, 2) fill the `_required` field with '2' when deploying the wallet.
 
 ```json
 {
     "_walletOwners": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71,hx07a2731037cfe59dbf76579d8ba1fbfc02616135,hxed36008ce6be8c8deb9acdfc05d1a06f5576a2db",
- 	"_required": "2"
+    "_required": "2"
 }
 ```
 
@@ -38,7 +38,7 @@ If you want to use funds (e.g. send ICX or token) or change the internally set c
 ```json
 {
     "_destination": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
- 	"_method": "",
+    "_method": "",
     "_params": "",
     "_description": "send 10 icx to owner1",
     "_value": "0x0a"
@@ -54,7 +54,7 @@ Below is the list of read-only methods. By calling these methods, you can get in
 
 #### getRequirements
 
-Returns the requirements.
+Returns the requirements value.
 
 ```python
 @external(readonly=True)
@@ -127,12 +127,12 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
     "jsonrpc": "2.0",
     "result": {
         0: {
-        "_executed": "0x1",
-        "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
-        "_value": "0x0",
-        "_method": "addWalletOwner",
-        "_params": "[{"name":"_walletOwner","type":"Address","value":"hx1262526a4da004550021b5f9d249b9c7d98b5892"}]",
-        "_description": "add owner4 in wallet"
+            "_executed": "0x1",
+            "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+            "_value": "0x0",
+            "_method": "addWalletOwner",
+            "_params": "[{"name":"_walletOwner","type":"Address","value":"hx1262526a4da004550021b5f9d249b9c7d98b5892"}]",
+            "_description": "add owner4 in wallet"
         }
     },
     "id": 1
@@ -325,7 +325,7 @@ def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> lis
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-		   "method": "getConfirmations",
+            "method": "getConfirmations",
             "params": {
                 "_offset": "0x00",
                 "_count": "0x0A",
