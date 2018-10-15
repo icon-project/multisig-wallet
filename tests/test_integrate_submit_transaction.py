@@ -165,7 +165,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
                 "params": {"_transactionId": "0"}
             }
         }
-        expected_transaction_info = None
+        expected_transaction_info = {}
         actual_transaction_info = self._query(query_request)
         self.assertEqual(expected_transaction_info, actual_transaction_info)
 
@@ -260,4 +260,4 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         }
 
         response = self._query(query_request)
-        self.assertEqual(None, response)
+        self.assertEqual({}, response)

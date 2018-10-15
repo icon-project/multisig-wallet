@@ -78,9 +78,8 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             }
         }
         actual_transaction_data = self._query(query_request)
-        self.assertEqual(None, actual_transaction_data)
+        self.assertEqual({}, actual_transaction_data)
 
-    #todo: gettransactioninfo unittest 작성
     def test_get_transaction_list(self):
         # success case: get transaction list
         submit_txs = []

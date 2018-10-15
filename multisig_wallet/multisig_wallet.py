@@ -89,9 +89,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             self._wallet_owners.put(wallet_owner_addr)
             self._is_wallet_owner[wallet_owner_addr] = True
 
-        self._required = _required
-        self._pending_transaction_count = 0
-        self._executed_transaction_count = 0
+        self._required.set(_required)
+        self._pending_transaction_count.set(0)
+        self._executed_transaction_count.set(0)
 
     def on_update(self) -> None:
         super().on_update()
@@ -204,7 +204,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         transaction_id = self._executed_transaction_count.get() + self._pending_transaction_count.get()
 
         self._transactions[transaction_id] = transaction.to_bytes()
-        self._pending_transaction_count += 1
+        self._pending_transaction_count.set(self._pending_transaction_count.get() + 1)
 
         self.Submission(transaction_id)
         return transaction_id
@@ -214,8 +214,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if self._is_confirmed(transaction_id):
             if self._external_call(self._transactions[transaction_id]):
                 self._transactions[transaction_id] = True.to_bytes(1, "big") + self._transactions[transaction_id][1:]
-                self._pending_transaction_count -= 1
-                self._executed_transaction_count += 1
+                self._pending_transaction_count.set(self._pending_transaction_count.get() - 1)
+                self._executed_transaction_count.set(self._executed_transaction_count.get() + 1)
 
                 self.Execution(transaction_id)
             else:
@@ -252,7 +252,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             if self._confirmations[transaction_id][wallet_owner] is True:
                 count += 1
 
-        return count == self._required
+        return count == self._required.get()
 
     @only_wallet
     @external
@@ -309,7 +309,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def changeRequirement(self, _required: int):
         self._valid_requirement(len(self._wallet_owners), _required)
 
-        self._required = _required
+        self._required.set(_required)
 
         self.RequirementChange(_required)
 
@@ -377,9 +377,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def getTransactionCount(self, _pending: bool=True, _executed: bool=True) -> int:
         tx_count = 0
         if _pending:
-            tx_count += self._pending_transaction_count
+            tx_count += self._pending_transaction_count.get()
         if _executed:
-            tx_count += self._executed_transaction_count
+            tx_count += self._executed_transaction_count.get()
 
         return tx_count
 
