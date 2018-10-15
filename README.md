@@ -41,7 +41,7 @@ If you want to use funds (e.g. send ICX or token) or change the internally set c
     "_method": "",
     "_params": "",
     "_description": "send 10 icx to owner1",
-    "_value": "0x0a"
+    "_value": "0x8ac7230489e80000"
 }
 ```
 After the transaction is registered, other wallet owners can confirm this transaction using the `confirmTransaction` method, and only if the number of confirmations meets the 'requirement' value then this transaction is executed. All transactions' information are saved in the wallet eternally.
@@ -126,14 +126,13 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
 {
     "jsonrpc": "2.0",
     "result": {
-        0: {
-            "_executed": "0x1",
-            "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
-            "_value": "0x0",
-            "_method": "addWalletOwner",
-            "_params": "[{"name":"_walletOwner","type":"Address","value":"hx1262526a4da004550021b5f9d249b9c7d98b5892"}]",
-            "_description": "add owner4 in wallet"
-        }
+        "_executed": "0x1",
+        "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "_value": "0x0",
+        "_method": "addWalletOwner",
+        "_params": "[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hx1262526a4da004550021b5f9d249b9c7d98b5892\"}]",
+        "_description": "add owner4 in wallet",
+        "_transaction_id": "0x0"
     },
     "id": 1
 }
@@ -428,21 +427,23 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
 {
     "jsonrpc": "2.0",
     "result": [
-        0: {
+        {
             "_executed": "0x1",
             "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
             "_value": "0x0",
             "_method": "addWalletOwner",
-            "_params": "[{"name":"_walletOwner","type":"Address","value":"hx1262526a4da004550021b5f9d249b9c7d98b5892"}]",
-            "_description": "add owner4 in wallet"
-            },
-        1: {
+            "_params": "[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hx1262526a4da004550021b5f9d249b9c7d98b5892\"}]",
+            "_description": "add owner4 in wallet",
+            "_transaction_id": "0x0"
+        },
+        {
             "_executed": "0x0",
             "_destination": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
             "_value": "0x0",
             "_method": "addWalletOwner",
-            "_params": "[{"name":"_walletOwner","type":"Address","value":"hxbedeeadea922dc7f196e22eaa763fb01aab0b64c"}]",
-            "_description": "add owner5 in wallet"
+            "_params": "[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hxbedeeadea922dc7f196e22eaa763fb01aab0b64c\"}]",
+            "_description": "add owner5 in wallet",
+            "_transaction_id": "0x1"
         }
     ],
     "id": 1
@@ -464,11 +465,14 @@ def submitTransaction(self, _destination: Address, _method: str="", _params: str
 
 `_destination` is the SCORE address in which `_method` is defined in. 
 
+`_description` is a detailed description of the transaction (default value is ""). 
+
+`_value` is amount of ICX coin in loop(1 icx = 1e18 loop) unit (default value is 0). 
+
 `_method` is the name of the method that is to be executed when the number of confirmations meets the 'requrement' value.
 
 `_params` is a stringified JSON data. This data is used as the arguments of the method `_method` when it is executed. Below is the format. **name** is parameter's name, **type** is parameter's type (supported types are `int`, `str`, `bool`, `Address`, `bytes`), **value** is the actual argument value. 
 
-`_description` is a detailed description of the transaction.
 
 ![](./images/submitTransaction_json_format.png)
 
@@ -839,4 +843,3 @@ def RequirementChange(self, _required: int):
 
 ## References
 * [https://github.com/gnosis/MultiSigWallet](https://github.com/gnosis/MultiSigWallet)
-

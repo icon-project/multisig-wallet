@@ -57,14 +57,14 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionInfo",
-                "params": {"_transactionId":"0"}
+                "params": {"_transactionId": "0"}
             }
         }
 
         actual_transaction_data = self._query(query_request)
-        self.assertEqual(0, actual_transaction_data[0]["_executed"])
-        self.assertEqual(str(self.multisig_score_addr), actual_transaction_data[0]["_destination"])
-        self.assertEqual(change_requirement_method, actual_transaction_data[0]["_method"])
+        self.assertEqual(0, actual_transaction_data["_executed"])
+        self.assertEqual(str(self.multisig_score_addr), actual_transaction_data["_destination"])
+        self.assertEqual(change_requirement_method, actual_transaction_data["_method"])
 
         # failure case: try to search not exist transaction(should return None)
         query_request = {
@@ -117,9 +117,10 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         }
         actual_tx_list = self._query(query_request)
         for idx, actual_tx in enumerate(actual_tx_list):
-            self.assertEqual(0, actual_tx[idx]["_executed"])
-            self.assertEqual(str(self.multisig_score_addr), actual_tx[idx]["_destination"])
-            self.assertEqual(f'get transaction test id:{idx}', actual_tx[idx]["_description"])
+            if actual_tx["_transaction_id"] == idx:
+                self.assertEqual(0, actual_tx["_executed"])
+                self.assertEqual(str(self.multisig_score_addr), actual_tx["_destination"])
+                self.assertEqual(f'get transaction test id:{idx}', actual_tx["_description"])
 
         # failure case: request more than 50 list
         query_request = {
@@ -169,10 +170,11 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_tx_list = self._query(query_request)
         idx = 1
         for actual_tx in actual_tx_list:
-            self.assertEqual(0, actual_tx[idx]["_executed"])
-            self.assertEqual(str(self.multisig_score_addr), actual_tx[idx]["_destination"])
-            self.assertEqual(f'get transaction test id:{idx}', actual_tx[idx]["_description"])
-            idx += 2
+            if actual_tx["_transaction_id"] == idx:
+                self.assertEqual(0, actual_tx["_executed"])
+                self.assertEqual(str(self.multisig_score_addr), actual_tx["_destination"])
+                self.assertEqual(f'get transaction test id:{idx}', actual_tx["_description"])
+                idx += 2
 
         # success case: get executed transaction list
         query_request = {
@@ -188,10 +190,11 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_tx_list = self._query(query_request)
         idx = 0
         for actual_tx in actual_tx_list:
-            self.assertEqual(1, actual_tx[idx]["_executed"])
-            self.assertEqual(str(self.multisig_score_addr), actual_tx[idx]["_destination"])
-            self.assertEqual(f'get transaction test id:{idx}', actual_tx[idx]["_description"])
-            idx += 2
+            if actual_tx["_transaction_id"] == idx:
+                self.assertEqual(1, actual_tx["_executed"])
+                self.assertEqual(str(self.multisig_score_addr), actual_tx["_destination"])
+                self.assertEqual(f'get transaction test id:{idx}', actual_tx["_description"])
+                idx += 2
 
         # success case: get exceed transaction list
         query_request = {

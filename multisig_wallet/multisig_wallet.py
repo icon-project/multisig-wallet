@@ -321,7 +321,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def getTransactionInfo(self, _transactionId: int) -> dict:
         if self._transactions[_transactionId] is not None:
             transaction = Transaction.from_bytes(self._transactions[_transactionId])
-            return {_transactionId: transaction.to_dict()}
+            tx_dict = transaction.to_dict()
+            tx_dict["_transaction_id"] = _transactionId
+            return tx_dict
         else:
             return {}
 
@@ -399,6 +401,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         for tx_id in range(_offset, _count):
             if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
                 transaction = Transaction.from_bytes(self._transactions[tx_id])
-                transaction_list.append({tx_id: transaction.to_dict()})
+                tx_dict = transaction.to_dict()
+                tx_dict["_transaction_id"] = tx_id
+                transaction_list.append(tx_dict)
 
         return transaction_list
