@@ -203,7 +203,7 @@ class TestIntegrateBase(TestCase):
                                        "_required": "0x02"})
 
         tx2 = self._make_deploy_tx("",
-                                   "standard_token",
+                                   "tests/standard_token",
                                    token_owner,
                                    ZERO_SCORE_ADDRESS,
                                    deploy_params={"initialSupply": str(hex(token_total_supply)),

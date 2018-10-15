@@ -16,6 +16,7 @@
 
 from tests.test_integrate_base import TestIntegrateBase
 
+ICX_FACTOR = 10 ** 18
 
 class TestIntegrateSendIcx(TestIntegrateBase):
     def setUp(self):
@@ -43,16 +44,14 @@ class TestIntegrateSendIcx(TestIntegrateBase):
     def test_send_icx_to_score(self):
         # success case: send icx to SCORE(token score)
 
-        # deposit 10000icx to wallet SCORE
-        send_icx_value = 10000
+        # deposit 100 icx to wallet SCORE
+        send_icx_value = 100 * ICX_FACTOR
         self.deposit_icx_to_multisig_score(send_icx_value)
 
         # submit transaction which send 10 icx to token score
         submit_tx_params = {'_destination': str(self.token_score_addr),
-                            '_method': "",
-                            '_params': "",
                             '_description': 'send 10 icx to token score',
-                            '_value': '0x0a'}
+                            '_value': f'{hex(10*ICX_FACTOR)}'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
@@ -101,16 +100,16 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "address": self.token_score_addr
         }
 
-        expected_token_score_icx = 10
+        expected_token_score_icx = 10 * ICX_FACTOR
         actual_token_score_icx = self._query(query_request, "icx_getBalance")
         self.assertEqual(expected_token_score_icx, actual_token_score_icx)
 
-        # check multisig wallet score's icx(should be 9990)
+        # check multisig wallet score's icx(should be 90)
         query_request = {
             "address": self.multisig_score_addr
         }
         response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(9990, response)
+        self.assertEqual(90 * ICX_FACTOR, response)
 
         # failure case: when confirming to already executed transaction,
         # transaction shouldn't be executed again.
@@ -129,30 +128,28 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "address": self.token_score_addr
         }
 
-        expected_token_score_icx = 10
+        expected_token_score_icx = 10 * ICX_FACTOR
         actual_token_score_icx = self._query(query_request, "icx_getBalance")
         self.assertEqual(expected_token_score_icx, actual_token_score_icx)
 
-        # check multisig wallet score's icx(should be 9990)
+        # check multisig wallet score's icx(should be 90)
         query_request = {
             "address": self.multisig_score_addr
         }
         response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(9990, response)
+        self.assertEqual(90 * ICX_FACTOR, response)
 
     def test_send_icx_to_eoa(self):
         # success case: send icx to eoa(owner4)
 
-        # deposit 10000icx to wallet SCORE
-        send_icx_value = 10000
+        # deposit 100 icx to wallet SCORE
+        send_icx_value = 100 * ICX_FACTOR
         self.deposit_icx_to_multisig_score(send_icx_value)
 
         # submit transaction which send 10 icx to owner4
         submit_tx_params = {'_destination': str(self._owner4),
-                            '_method': "",
-                            '_params': "",
                             '_description': 'send 10 icx to owner4',
-                            '_value': '0x0a'}
+                            '_value': f'{hex(10*ICX_FACTOR)}'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
@@ -202,13 +199,13 @@ class TestIntegrateSendIcx(TestIntegrateBase):
             "address": self._owner4
         }
 
-        expected_owner4_icx = 10
+        expected_owner4_icx = 10 * ICX_FACTOR
         actual_owner4_icx = self._query(query_request, "icx_getBalance")
         self.assertEqual(expected_owner4_icx, actual_owner4_icx)
 
-        # check multisig wallet score's icx(should be 9990)
+        # check multisig wallet score's icx(should be 90)
         query_request = {
             "address": self.multisig_score_addr
         }
         response = self._query(query_request, "icx_getBalance")
-        self.assertEqual(9990, response)
+        self.assertEqual(90 * ICX_FACTOR, response)
