@@ -73,8 +73,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self._confirmations = DictDB("confirmations", db, value_type=bool, depth=2)
         self._wallet_owners = ArrayDB("wallet_owners", db, value_type=Address)
         self._required = VarDB("required", db, value_type=int)
-        self._pending_transaction_count = VarDB("pendingTransactionCount", db, value_type=int)
-        self._executed_transaction_count = VarDB("executedTransactionCount", db, value_type=int)
+        self._transaction_count = VarDB('transactionCount', db, value_type=int)
 
     def on_install(self, _walletOwners: str, _required: int) -> None:
         super().on_install()
@@ -87,8 +86,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             self._wallet_owners.put(wallet_owner_addr)
 
         self._required.set(_required)
-        self._pending_transaction_count.set(0)
-        self._executed_transaction_count.set(0)
+        self._transaction_count.set(0)
 
     def on_update(self) -> None:
         super().on_update()
@@ -124,7 +122,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
 
     def _transaction_exists(self, transaction_id: int):
         if self._transactions[transaction_id] is None \
-                or self._pending_transaction_count.get() + self._executed_transaction_count.get() <= transaction_id:
+                or self._transaction_count.get() <= transaction_id:
             self.revert(f"transaction id '{transaction_id}' is not exist")
 
     def _confirmed(self, transaction_id: int, wallet_owner: Address):
@@ -198,10 +196,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                                   params=params,
                                   value=value,
                                   description=description)
-        transaction_id = self._executed_transaction_count.get() + self._pending_transaction_count.get()
+        transaction_id = self._transaction_count.get()
 
         self._transactions[transaction_id] = transaction.to_bytes()
-        self._pending_transaction_count.set(self._pending_transaction_count.get() + 1)
+        self._transaction_count.set(self._transaction_count.get() + 1)
 
         self.Submission(transaction_id)
         return transaction_id
@@ -211,8 +209,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if self._is_confirmed(transaction_id):
             if self._external_call(self._transactions[transaction_id]):
                 self._transactions[transaction_id] = True.to_bytes(1, "big") + self._transactions[transaction_id][1:]
-                self._pending_transaction_count.set(self._pending_transaction_count.get() - 1)
-                self._executed_transaction_count.set(self._executed_transaction_count.get() + 1)
 
                 self.Execution(transaction_id)
             else:
@@ -369,10 +365,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @external(readonly=True)
     def getTransactionCount(self, _pending: bool=True, _executed: bool=True) -> int:
         tx_count = 0
-        if _pending:
-            tx_count += self._pending_transaction_count.get()
-        if _executed:
-            tx_count += self._executed_transaction_count.get()
+        for tx_id in range(self._transaction_count.get()):
+            if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
+                tx_count += 1
 
         return tx_count
 
@@ -384,7 +379,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             raise IconScoreException("Requests that exceed the allowed amount")
 
         transaction_list = []
-        total_transaction_count = self._executed_transaction_count.get() + self._pending_transaction_count.get()
+        total_transaction_count = self._transaction_count.get()
 
         # prevent searching not existed transaction
         _count = _offset + _count if total_transaction_count >= _offset + _count else total_transaction_count
@@ -392,6 +387,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         for tx_id in range(_offset, _count):
             if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
                 transaction = Transaction.from_bytes(self._transactions[tx_id])
+
                 tx_dict = transaction.to_dict()
                 tx_dict["_transaction_id"] = tx_id
                 transaction_list.append(tx_dict)
