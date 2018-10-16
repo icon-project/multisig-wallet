@@ -138,5 +138,3 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
         expected_revert_massage = "transaction id '0' has already been executed"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
-
-

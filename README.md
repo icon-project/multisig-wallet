@@ -178,13 +178,13 @@ def getTransactionsExecuted(self, _transactionId: int) -> bool:
 }
 ```
 
-####  checkIsWalletOwner
+####  checkIfWalletOwner
 
 Returns a boolean which shows whether a given address is a wallet owner or not.
 
 ```python
 @external(readonly=True)
-def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
+def checkIfWalletOwner(self, _walletOwner: Address)-> bool:
 ```
 
 **Example**
@@ -199,7 +199,7 @@ def checkIsWalletOwner(self, _walletOwner: Address)-> bool:
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-            "method": "checkIsWalletOwner",
+            "method": "checkIfWalletOwner",
             "params": {
                 "_walletOwner": "hx07a2731037cfe59dbf76579d8ba1fbfc02616135"
             }

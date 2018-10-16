@@ -71,27 +71,22 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # store wallet owners' confirmations of each transaction
         # _confirmations's key: transaction id(int type), address(Address type)
         self._confirmations = DictDB("confirmations", db, value_type=bool, depth=2)
-        # _is_wallet_owner's key: address(Address type)
-        self._is_wallet_owner = DictDB("is_wallet_owner", db, value_type=bool)
         self._wallet_owners = ArrayDB("wallet_owners", db, value_type=Address)
         self._required = VarDB("required", db, value_type=int)
-        self._pending_transaction_count = VarDB("pendingTransactionCount", db, value_type=int)
-        self._executed_transaction_count = VarDB("executedTransactionCount", db, value_type=int)
+        self._transaction_count = VarDB('transactionCount', db, value_type=int)
 
     def on_install(self, _walletOwners: str, _required: int) -> None:
         super().on_install()
 
         wallet_owner_list = _walletOwners.replace(" ", "").split(",")
-        self._valid_requirement(len(wallet_owner_list), _required)
+        self._check_requirement(len(wallet_owner_list), _required)
 
         for wallet_owner in wallet_owner_list:
             wallet_owner_addr = Address.from_string(wallet_owner)
             self._wallet_owners.put(wallet_owner_addr)
-            self._is_wallet_owner[wallet_owner_addr] = True
 
         self._required.set(_required)
-        self._pending_transaction_count.set(0)
-        self._executed_transaction_count.set(0)
+        self._transaction_count.set(0)
 
     def on_update(self) -> None:
         super().on_update()
@@ -118,16 +113,16 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                 raise IconScoreException(f"only positive number is accepted")
 
     def _wallet_owner_does_not_exist(self, wallet_owner: Address):
-        if self._is_wallet_owner[wallet_owner] is True:
+        if wallet_owner in self._wallet_owners:
             self.revert(f"{wallet_owner} already exists as an owner of the wallet")
 
     def _wallet_owner_exist(self, wallet_owner: Address):
-        if self._is_wallet_owner[wallet_owner] is False:
+        if wallet_owner not in self._wallet_owners:
             self.revert(f"{wallet_owner} is not an owner of wallet")
 
     def _transaction_exists(self, transaction_id: int):
         if self._transactions[transaction_id] is None \
-                or self._pending_transaction_count.get() + self._executed_transaction_count.get() <= transaction_id:
+                or self._transaction_count.get() <= transaction_id:
             self.revert(f"transaction id '{transaction_id}' is not exist")
 
     def _confirmed(self, transaction_id: int, wallet_owner: Address):
@@ -143,7 +138,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if self._transactions[transaction_id][0] == 1:
             self.revert(f"transaction id '{transaction_id}' has already been executed")
 
-    def _valid_requirement(self, wallet_owner_count: int, required: int):
+    def _check_requirement(self, wallet_owner_count: int, required: int):
         if wallet_owner_count > self._MAX_WALLET_OWNER_COUNT or \
                 required > wallet_owner_count or \
                 required <= 0 or \
@@ -201,10 +196,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                                   params=params,
                                   value=value,
                                   description=description)
-        transaction_id = self._executed_transaction_count.get() + self._pending_transaction_count.get()
+        transaction_id = self._transaction_count.get()
 
         self._transactions[transaction_id] = transaction.to_bytes()
-        self._pending_transaction_count.set(self._pending_transaction_count.get() + 1)
+        self._transaction_count.set(transaction_id + 1)
 
         self.Submission(transaction_id)
         return transaction_id
@@ -214,8 +209,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         if self._is_confirmed(transaction_id):
             if self._external_call(self._transactions[transaction_id]):
                 self._transactions[transaction_id] = True.to_bytes(1, "big") + self._transactions[transaction_id][1:]
-                self._pending_transaction_count.set(self._pending_transaction_count.get() - 1)
-                self._executed_transaction_count.set(self._executed_transaction_count.get() + 1)
 
                 self.Execution(transaction_id)
             else:
@@ -259,10 +252,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def addWalletOwner(self, _walletOwner: Address):
         self._wallet_owner_does_not_exist(_walletOwner)
         # check if owner's count exceed '_MAX_OWNER_COUNT'
-        self._valid_requirement(len(self._wallet_owners) + 1, self._required.get())
+        self._check_requirement(len(self._wallet_owners) + 1, self._required.get())
 
         self._wallet_owners.put(_walletOwner)
-        self._is_wallet_owner[_walletOwner] = True
 
         self.WalletOwnerAddition(_walletOwner)
 
@@ -277,9 +269,6 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                 self._wallet_owners[idx] = _newWalletOwner
                 break
 
-        del self._is_wallet_owner[_walletOwner]
-        self._is_wallet_owner[_newWalletOwner] = True
-
         self.WalletOwnerRemoval(_walletOwner)
         self.WalletOwnerAddition(_newWalletOwner)
 
@@ -290,7 +279,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         # if all owners are removed, this contract can not be executed.
         # so check if _owner is only one left in this wallet
         wallet_owners_count = len(self._wallet_owners)
-        self._valid_requirement(wallet_owners_count - 1, self._required.get())
+        self._check_requirement(wallet_owners_count - 1, self._required.get())
 
         for idx, owner in enumerate(self._wallet_owners):
             if owner == _walletOwner:
@@ -300,14 +289,12 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                     self._wallet_owners[idx] = self._wallet_owners.pop()
                 break
 
-        del self._is_wallet_owner[_walletOwner]
-
         self.WalletOwnerRemoval(_walletOwner)
 
     @only_wallet
     @external
     def changeRequirement(self, _required: int):
-        self._valid_requirement(len(self._wallet_owners), _required)
+        self._check_requirement(len(self._wallet_owners), _required)
 
         self._required.set(_required)
 
@@ -335,8 +322,8 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             return False
 
     @external(readonly=True)
-    def checkIsWalletOwner(self, _walletOwner: Address) -> bool:
-        return self._is_wallet_owner[_walletOwner]
+    def checkIfWalletOwner(self, _walletOwner: Address) -> bool:
+        return _walletOwner in self._wallet_owners
 
     @external(readonly=True)
     def getWalletOwners(self, _offset: int, _count: int) -> list:
@@ -378,10 +365,9 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     @external(readonly=True)
     def getTransactionCount(self, _pending: bool=True, _executed: bool=True) -> int:
         tx_count = 0
-        if _pending:
-            tx_count += self._pending_transaction_count.get()
-        if _executed:
-            tx_count += self._executed_transaction_count.get()
+        for tx_id in range(self._transaction_count.get()):
+            if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
+                tx_count += 1
 
         return tx_count
 
@@ -393,7 +379,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             raise IconScoreException("Requests that exceed the allowed amount")
 
         transaction_list = []
-        total_transaction_count = self._executed_transaction_count.get() + self._pending_transaction_count.get()
+        total_transaction_count = self._transaction_count.get()
 
         # prevent searching not existed transaction
         _count = _offset + _count if total_transaction_count >= _offset + _count else total_transaction_count
@@ -401,6 +387,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         for tx_id in range(_offset, _count):
             if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
                 transaction = Transaction.from_bytes(self._transactions[tx_id])
+
                 tx_dict = transaction.to_dict()
                 tx_dict["_transaction_id"] = tx_id
                 transaction_list.append(tx_dict)

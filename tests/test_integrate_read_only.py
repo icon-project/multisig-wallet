@@ -80,7 +80,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_transaction_data = self._query(query_request)
         self.assertEqual({}, actual_transaction_data)
 
-    def test_get_transaction_list(self):
+    def test_get_transaction_list_and_get_transaction_count(self):
         # success case: get transaction list
         submit_txs = []
         for idx in range(0, 50):
@@ -210,6 +210,46 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_tx_list = self._query(query_request)
         self.assertEqual(5, len(actual_tx_list))
 
+        # success case: test getTransactionCount(should pending transaction: 25, executed transaction: 50)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionCount",
+                "params": {"_pending": "1", "_executed": "1"}
+            }
+        }
+        actual_tx_count = self._query(query_request)
+        self.assertEqual(50, actual_tx_count)
+
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionCount",
+                "params": {"_pending": "1", "_executed": "0"}
+            }
+        }
+        actual_pending_tx_count = self._query(query_request)
+        self.assertEqual(25, actual_pending_tx_count)
+
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionCount",
+                "params": {"_pending": "0", "_executed": "1"}
+            }
+        }
+        actual_executed_tx_count = self._query(query_request)
+        self.assertEqual(25, actual_executed_tx_count)
+
     def test_get_wallet_owners(self):
         owners = [str(create_address()) for x in range(0, 50)]
 
@@ -258,7 +298,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_owners = self._query(query_request)
         self.assertEqual(expected_owners, actual_owners)
 
-    def test_get_confirmations(self):
+    def test_get_confirmations_and_get_confirmation_count(self):
         # success case: get owner list of confirmed transaction
         owners = [str(create_address()) for x in range(0, 50)]
 
@@ -296,6 +336,20 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
 
+        # getConfirmationCount should be 1
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getConfirmationCount",
+                "params": {"_transactionId":"0"}
+            }
+        }
+        actual_confirmation_count = self._query(query_request)
+        self.assertEqual(1, actual_confirmation_count)
+
         # confirm transaction(odd owners confirm, even owners not confirm)
         confirm_txs = []
         for idx, owner in enumerate(owners):
@@ -328,3 +382,17 @@ class TestIntegrateReadOnly(TestIntegrateBase):
 
         actual_owners = self._query(query_request)
         self.assertEqual(expected_owners, actual_owners)
+
+        # getConfirmationCount should be 26(submit wallet owner 1 + confirm wallet owner 25)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getConfirmationCount",
+                "params": {"_transactionId":"0"}
+            }
+        }
+        actual_confirmation_count = self._query(query_request)
+        self.assertEqual(26, actual_confirmation_count)
