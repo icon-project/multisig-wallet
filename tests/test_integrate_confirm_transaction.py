@@ -345,4 +345,3 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         expected_execution_event_log = 'ExecutionFailure(int)'
         actual_execution_event_log = tx_results[0].event_logs[1].indexed[0]
         self.assertEqual(expected_execution_event_log, actual_execution_event_log)
-

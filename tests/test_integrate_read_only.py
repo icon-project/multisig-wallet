@@ -221,8 +221,8 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 "params": {"_pending": "1", "_executed": "1"}
             }
         }
-        actual_tx_list = self._query(query_request)
-        self.assertEqual(50, len(actual_tx_list))
+        actual_tx_count = self._query(query_request)
+        self.assertEqual(50, actual_tx_count)
 
         query_request = {
             "version": self._version,
@@ -234,8 +234,8 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 "params": {"_pending": "1", "_executed": "0"}
             }
         }
-        actual_tx_list = self._query(query_request)
-        self.assertEqual(25, len(actual_tx_list))
+        actual_pending_tx_count = self._query(query_request)
+        self.assertEqual(25, actual_pending_tx_count)
 
         query_request = {
             "version": self._version,
@@ -247,8 +247,8 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 "params": {"_pending": "0", "_executed": "1"}
             }
         }
-        actual_tx_list = self._query(query_request)
-        self.assertEqual(25, len(actual_tx_list))
+        actual_executed_tx_count = self._query(query_request)
+        self.assertEqual(25, actual_executed_tx_count)
 
     def test_get_wallet_owners(self):
         owners = [str(create_address()) for x in range(0, 50)]
@@ -347,8 +347,8 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 "params": {"_transactionId":"0"}
             }
         }
-        actual_owners = self._query(query_request)
-        self.assertEqual(1, actual_owners)
+        actual_confirmation_count = self._query(query_request)
+        self.assertEqual(1, actual_confirmation_count)
 
         # confirm transaction(odd owners confirm, even owners not confirm)
         confirm_txs = []
@@ -394,5 +394,5 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 "params": {"_transactionId":"0"}
             }
         }
-        actual_owners = self._query(query_request)
-        self.assertEqual(26, actual_owners)
+        actual_confirmation_count = self._query(query_request)
+        self.assertEqual(26, actual_confirmation_count)

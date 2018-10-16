@@ -113,11 +113,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
                 raise IconScoreException(f"only positive number is accepted")
 
     def _wallet_owner_does_not_exist(self, wallet_owner: Address):
-        if (wallet_owner in self._wallet_owners) is True:
+        if wallet_owner in self._wallet_owners:
             self.revert(f"{wallet_owner} already exists as an owner of the wallet")
 
     def _wallet_owner_exist(self, wallet_owner: Address):
-        if (wallet_owner in self._wallet_owners) is False:
+        if wallet_owner not in self._wallet_owners:
             self.revert(f"{wallet_owner} is not an owner of wallet")
 
     def _transaction_exists(self, transaction_id: int):
