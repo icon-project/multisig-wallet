@@ -29,8 +29,3 @@ def only_wallet(func):
 
         return func(calling_obj, *args, **kwargs)
     return __wrapper
-
-
-
-
-

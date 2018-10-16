@@ -199,7 +199,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         transaction_id = self._transaction_count.get()
 
         self._transactions[transaction_id] = transaction.to_bytes()
-        self._transaction_count.set(self._transaction_count.get() + 1)
+        self._transaction_count.set(transaction_id + 1)
 
         self.Submission(transaction_id)
         return transaction_id
