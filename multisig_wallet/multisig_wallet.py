@@ -126,11 +126,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
             self.revert(f"transaction id '{transaction_id}' is not exist")
 
     def _confirmed(self, transaction_id: int, wallet_owner: Address):
-        if self._confirmations[transaction_id][wallet_owner] is False:
+        if not self._confirmations[transaction_id][wallet_owner]:
             self.revert(f"{wallet_owner} hasn't confirmed to transaction id '{transaction_id}' yet")
 
     def _not_confirmed(self, transaction_id: int, wallet_owner: Address):
-        if self._confirmations[transaction_id][wallet_owner] is True:
+        if self._confirmations[transaction_id][wallet_owner]:
             self.revert(f"{wallet_owner} has already confirmed to transaction '{transaction_id}'")
 
     def _not_executed(self, transaction_id: int):
@@ -242,7 +242,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
     def _is_confirmed(self, transaction_id) -> bool:
         count = 0
         for wallet_owner in self._wallet_owners:
-            if self._confirmations[transaction_id][wallet_owner] is True:
+            if self._confirmations[transaction_id][wallet_owner]:
                 count += 1
 
         return count == self._required.get()
