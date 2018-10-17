@@ -184,7 +184,7 @@ Returns a boolean which shows whether a given address is a wallet owner or not.
 
 ```python
 @external(readonly=True)
-def checkIfWalletOwner(self, _walletOwner: Address)-> bool:
+def checkIfWalletOwner(self, _walletOwner: Address) -> bool:
 ```
 
 **Example**
@@ -218,13 +218,51 @@ def checkIfWalletOwner(self, _walletOwner: Address)-> bool:
 }
 ```
 
+#### getTotalNumberOfWalletOwner
+
+Returns the total number of wallet owner.
+
+```python
+@external(readonly=True)
+def getTotalNumberOfWalletOwner(self) -> int:
+```
+
+**Example**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "icx_call",
+    "id": 1,
+    "params": {
+        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "dataType": "call",
+        "data": {           
+            "method": "getTotalNumberOfWalletOwner",
+            "params": {}
+        }
+    }
+}
+```
+
+**Call result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": "0x3",
+    "id": 1
+}
+```
+
 #### getWalletOwners
 
 Returns a list of wallet owners.
 
 ```python
 @external(readonly=True)
-def getWalletOwners(self, _offset: int, _count: int)-> list:
+def getWalletOwners(self, _offset: int, _count: int) -> list:
 ```
 
 **Example**
@@ -270,7 +308,7 @@ Returns a transaction confirmation count given a transaction ID.
 
 ```python
 @external(readonly=True)
-def getConfirmationCount(self, _transactionId: int)-> int:
+def getConfirmationCount(self, _transactionId: int) -> int:
 ```
 
 **Example**
@@ -310,7 +348,7 @@ Returns a list of wallet owners who have been confirmed by a given transaction.
 
 ```python
 @external(readonly=True)
-def getConfirmations(self, _offset: int, _count: int, _transactionId: int)-> list:
+def getConfirmations(self, _offset: int, _count: int, _transactionId: int) -> list:
 ```
 **Example**
 
@@ -354,7 +392,7 @@ Returns the total number of transactions which is submitted in the wallet.
 
 ```python
 @external(readonly=True)
-def getTransactionCount(self, _pending: bool=True, _executed: bool=True)-> int:
+def getTransactionCount(self, _pending: bool=True, _executed: bool=True) -> int:
 ```
 **Example**
 
@@ -394,7 +432,7 @@ Returns a list of transactions.
 
 ```python
 @external(readonly=True)
-def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True)-> list:
+def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _executed: bool=True) -> list:
 ```
 
 **Example**
@@ -456,7 +494,7 @@ Below is a list of the methods that the wallet owners can call.
 
 #### submitTransaction
 
-Submit a transaction which is to be executed when the number of confirmations meets the 'requirement' value. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as the transaction is submitted successfully. 
+Submit a transaction which is to be executed when the number of confirmations meets the 'requirement' value. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as the transaction is submitted successfully(. 
 
 ```python
 @external
