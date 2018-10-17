@@ -494,7 +494,7 @@ Below is a list of the methods that the wallet owners can call.
 
 #### submitTransaction
 
-Submit a transaction which is to be executed when the number of confirmations meets the 'requirement' value. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as the transaction is submitted successfully(. 
+Submit a transaction which is to be executed when the number of confirmations meets the 'requirement' value. Only wallet owners can call this method. The wallet owner who has called this method is confirmed as soon as the transaction is submitted successfully. 
 
 ```python
 @external
