@@ -326,7 +326,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return _walletOwner in self._wallet_owners
 
     @external(readonly=True)
-    def getTotalNumberOfWalletOwner(self) -> int:
+    def getWalletOwnerCount(self) -> int:
         return len(self._wallet_owners)
 
     @external(readonly=True)

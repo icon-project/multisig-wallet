@@ -405,7 +405,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getTotalNumberOfWalletOwner",
+                "method": "getWalletOwnerCount",
                 "params": {}
             }
         }
@@ -449,7 +449,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getTotalNumberOfWalletOwner",
+                "method": "getWalletOwnerCount",
                 "params": {}
             }
         }
@@ -493,7 +493,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getTotalNumberOfWalletOwner",
+                "method": "getWalletOwnerCount",
                 "params": {}
             }
         }

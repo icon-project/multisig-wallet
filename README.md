@@ -218,13 +218,13 @@ def checkIfWalletOwner(self, _walletOwner: Address) -> bool:
 }
 ```
 
-#### getTotalNumberOfWalletOwner
+#### getWalletOwnerCount
 
 Returns the total number of wallet owner.
 
 ```python
 @external(readonly=True)
-def getTotalNumberOfWalletOwner(self) -> int:
+def getWalletOwnerCount(self) -> int:
 ```
 
 **Example**
@@ -239,7 +239,7 @@ def getTotalNumberOfWalletOwner(self) -> int:
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-            "method": "getTotalNumberOfWalletOwner",
+            "method": "getWalletOwnerCount",
             "params": {}
         }
     }
