@@ -326,6 +326,10 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         return _walletOwner in self._wallet_owners
 
     @external(readonly=True)
+    def getWalletOwnerCount(self) -> int:
+        return len(self._wallet_owners)
+
+    @external(readonly=True)
     def getWalletOwners(self, _offset: int, _count: int) -> list:
         self._only_positive_number(_offset, _count)
 
