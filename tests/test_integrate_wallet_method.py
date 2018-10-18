@@ -561,7 +561,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getRequirements",
+                "method": "getRequirement",
                 "params": {}
             }
         }
@@ -601,7 +601,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getRequirements",
+                "method": "getRequirement",
                 "params": {}
             }
         }
@@ -641,7 +641,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "to": self.multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getRequirements",
+                "method": "getRequirement",
                 "params": {}
             }
         }
