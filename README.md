@@ -591,7 +591,7 @@ Below is an example of a `addWalletOwner` method call. After writing the request
 
 #### confirmTransaction
 
-Confirms a transaction corresponding to the `_transactionId`. As soon as a transaction confirmation count meets the 'requirement' value, the transaction is executed. Only wallet owners can call this method.
+Confirms a transaction corresponding to the `_transactionId`. As soon as a transaction confirmation count meets the 'requirement' value(should not exceed), the transaction is executed. Only wallet owners can call this method.
 
 ```python
 @external
@@ -674,7 +674,7 @@ def confirmTransaction(self, _transactionId: int):
 
 #### revokeTransaction
 
-Revokes confirmation of a transaction corresponding to the `_transactionId`. Only already confirmed wallet owners can revoke their own confirmation of a transaction. Wallet owners can't revoke others' confirmation.
+Revokes confirmation of a transaction corresponding to the `_transactionId`. Only already confirmed wallet owners can revoke their own confirmation of a transaction. Wallet owners can't revoke others' confirmation. This method is only valid for pending transaction.
 
 ```python
 @external
