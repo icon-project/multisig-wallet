@@ -301,7 +301,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self.RequirementChange(_required)
 
     @external(readonly=True)
-    def getRequirements(self) -> int:
+    def getRequirement(self) -> int:
         return self._required.get()
 
     @external(readonly=True)

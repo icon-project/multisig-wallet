@@ -182,7 +182,7 @@ class TestIntegrateBase(TestCase):
             "to": multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getRequirements",
+                "method": "getRequirement",
                 "params": {}
             }
         }
@@ -239,7 +239,7 @@ class TestIntegrateBase(TestCase):
             "to": multisig_score_addr,
             "dataType": "call",
             "data": {
-                "method": "getRequirements",
+                "method": "getRequirement",
                 "params": {}
             }
         }

@@ -52,13 +52,13 @@ After the transaction is registered, other wallet owners can confirm this transa
 
 Below is the list of read-only methods. By calling these methods, you can get information from the wallet.
 
-#### getRequirements
+#### getRequirement
 
 Returns the requirements value.
 
 ```python
 @external(readonly=True)
-def getRequirements(self) -> int:
+def getRequirement(self) -> int:
 ```
 
 **Example**
@@ -73,7 +73,7 @@ def getRequirements(self) -> int:
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-            "method": "getRequirements",
+            "method": "getRequirement",
             "params": {}
         }
     }
