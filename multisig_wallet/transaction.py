@@ -14,15 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from struct import pack, unpack
-
 from iconservice import *
 
 # address, value fix
 ADDRESS_BYTE_LEN = 21
 DEFAULT_VALUE_BYTES = 16
-# fixed struct data size(bytes)
-FIXED_STRUCT_SIZE = 42
 DATA_BYTE_ORDER = "big"
 
 MAX_METHOD_LEN = 100
@@ -31,40 +27,20 @@ MAX_DESCRIPTION_LEN = 1000
 
 
 class Transaction:
-    # format: executed flag 1bytes + address 21bytes + value 16bytes + format length 1bytes
-    # (total 42 bytes including pad 3bytes)
-    _fixed_struct_format = f">Bx{ADDRESS_BYTE_LEN}sx{DEFAULT_VALUE_BYTES}sxB"
-
     def __init__(self,
                  destination: Address,
                  method: str,
                  params: str,
                  value: int,
                  description: str,
-                 executed: bool=False):
+                 executed: bool):
 
-        # as None type can't be converted to bytes, must be changed to ""
-        method = "" if method is None else method
-        params = "" if params is None else params
-        # struct_format will be used when decode serialized transaction data(method, params, description)
-        self._flexible_struct_format = self._make_struct_format(method, params, description)
         self._executed = executed
         self._destination = destination
         self._value = value
         self._method = method
         self._params = params
         self._description = description
-
-    def _make_struct_format(self, method, params, description):
-        method_len = len(method.encode())
-        params_len = len(params.encode())
-        description_len = len(description.encode())
-        if method_len > MAX_METHOD_LEN \
-                or params_len > MAX_PARAMS_LEN \
-                or description_len > MAX_DESCRIPTION_LEN:
-            revert("too long parameter length")
-
-        return f'>x{method_len}sx{params_len}sx{description_len}s'
 
     @property
     def executed(self) -> bool:
@@ -97,48 +73,61 @@ class Transaction:
     def to_dict(self):
         tx_dict = self.__dict__
         tx_dict['_destination'] = str(self.destination)
-        del tx_dict['_flexible_struct_format']
         return tx_dict
 
-    @staticmethod
-    def from_bytes(buf: bytes):
-        transaction_executed, destination, value, flexible_struct_format_len = \
-            unpack(Transaction._fixed_struct_format, buf[:FIXED_STRUCT_SIZE])
+    @classmethod
+    def create_transaction_with_validation(cls,
+                                           destination: Address,
+                                           method: str,
+                                           params: str,
+                                           value: int,
+                                           description: str,
+                                           executed: bool = False):
+        # as None type can't be converted to bytes, must be changed to ""
+        method = "" if method is None else method
+        params = "" if params is None else params
 
-        flexible_struct_format = \
-            buf[FIXED_STRUCT_SIZE: FIXED_STRUCT_SIZE + flexible_struct_format_len].decode()
-        method, params, description = unpack(flexible_struct_format,
-                                             buf[FIXED_STRUCT_SIZE + flexible_struct_format_len:])
+        if len(method) > MAX_METHOD_LEN \
+                or len(params) > MAX_PARAMS_LEN \
+                or len(description) > MAX_DESCRIPTION_LEN:
+            revert("too long parameter length")
+        try:
+            value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER)
+        except OverflowError:
+            revert("exceed ICX amount you can send at one time")
 
-        return Transaction(executed=transaction_executed,
-                           destination=Address.from_bytes(destination.strip(b'\x00')),
-                           method=method.decode(encoding="utf-8"),
-                           params=params.decode(encoding="utf-8"),
-                           value=int.from_bytes(value, DATA_BYTE_ORDER),
-                           description=description.decode(encoding="utf-8"))
+        return cls(executed=executed,
+                   destination=destination,
+                   value=value,
+                   method=method,
+                   params=params,
+                   description=description)
+
+    @classmethod
+    def from_bytes(cls, buf: bytes):
+        encoded_executed = buf[0]
+        encoded_destination = buf[1: 1 + ADDRESS_BYTE_LEN]
+        encoded_value = buf[1 + ADDRESS_BYTE_LEN: 1 + ADDRESS_BYTE_LEN + DEFAULT_VALUE_BYTES]
+        flexible_vars_json_string = buf[1 + ADDRESS_BYTE_LEN + DEFAULT_VALUE_BYTES:].decode()
+        flexible_vars_json = json_loads(flexible_vars_json_string)
+
+        return cls(executed=encoded_executed,
+                   destination=Address.from_bytes(encoded_destination.strip(b'\x00')),
+                   value=int.from_bytes(encoded_value, DATA_BYTE_ORDER),
+                   method=flexible_vars_json["method"],
+                   params=flexible_vars_json["params"],
+                   description=flexible_vars_json["description"])
 
     def to_bytes(self) -> bytes:
-        flexible_struct_format_bytes = self._flexible_struct_format.encode()
-        flexible_struct_format_len = len(flexible_struct_format_bytes)
-        if flexible_struct_format_len > 255:
-            revert("too long parameters")
+        encoded_executed = self.executed.to_bytes(1, DATA_BYTE_ORDER)
+        encoded_value = self.value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER)
+        destination_bytes = self.destination.to_bytes()
+        destination_bytes = destination_bytes if len(destination_bytes) == 21 else b'\x00' + destination_bytes
 
-        packed_fixed_variables = pack(
-            Transaction._fixed_struct_format,
-            self.executed,
-            self.destination.to_bytes(),
-            self._value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER),
-            flexible_struct_format_len
-        )
+        flexible_vars = dict()
+        flexible_vars["method"] = self.method
+        flexible_vars["params"] = self.params
+        flexible_vars["description"] = self.description
 
-        packed_flexible_variables = pack(
-            self._flexible_struct_format,
-            self._method.encode(encoding="utf-8"),
-            self._params.encode(encoding="utf-8"),
-            self._description.encode(encoding="utf-8"))
-
-        transaction = packed_fixed_variables + \
-                      flexible_struct_format_bytes + \
-                      packed_flexible_variables
-
-        return transaction
+        encoded_flexible_vars_json = json_dumps(flexible_vars).encode(encoding="utf-8")
+        return encoded_executed + destination_bytes + encoded_value + encoded_flexible_vars_json

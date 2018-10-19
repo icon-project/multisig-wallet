@@ -591,7 +591,7 @@ Below is an example of a `addWalletOwner` method call. After writing the request
 
 #### confirmTransaction
 
-Confirms a transaction corresponding to the `_transactionId`. As soon as a transaction confirmation count meets the 'requirement' value(should not exceed), the transaction is executed. Only wallet owners can call this method.
+Confirms a transaction corresponding to the `_transactionId`. As soon as a transaction confirmation count meets the 'requirement' value (should not exceed), the transaction is executed. Only wallet owners can call this method.
 
 ```python
 @external

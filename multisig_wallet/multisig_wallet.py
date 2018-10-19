@@ -191,11 +191,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self.Revocation(self.msg.sender, _transactionId)
 
     def _add_transaction(self, destination: Address, method: str, params: str, value: int, description: str) -> int:
-        transaction = Transaction(destination=destination,
-                                  method=method,
-                                  params=params,
-                                  value=value,
-                                  description=description)
+        transaction = Transaction.create_transaction_with_validation(destination=destination,
+                                                                     method=method,
+                                                                     params=params,
+                                                                     value=value,
+                                                                     description=description)
         transaction_id = self._transaction_count.get()
 
         self._transactions[transaction_id] = transaction.to_bytes()
