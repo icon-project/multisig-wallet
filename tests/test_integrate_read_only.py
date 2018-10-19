@@ -80,7 +80,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_transaction_data = self._query(query_request)
         self.assertEqual({}, actual_transaction_data)
 
-    def test_get_transaction_list(self):
+    def test_get_transaction_list_and_get_transaction_count(self):
         # success case: get transaction list
         submit_txs = []
         for idx in range(0, 50):
@@ -210,6 +210,46 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_tx_list = self._query(query_request)
         self.assertEqual(5, len(actual_tx_list))
 
+        # success case: test getTransactionCount(should pending transaction: 25, executed transaction: 50)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionCount",
+                "params": {"_pending": "1", "_executed": "1"}
+            }
+        }
+        actual_tx_count = self._query(query_request)
+        self.assertEqual(50, actual_tx_count)
+
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionCount",
+                "params": {"_pending": "1", "_executed": "0"}
+            }
+        }
+        actual_pending_tx_count = self._query(query_request)
+        self.assertEqual(25, actual_pending_tx_count)
+
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getTransactionCount",
+                "params": {"_pending": "0", "_executed": "1"}
+            }
+        }
+        actual_executed_tx_count = self._query(query_request)
+        self.assertEqual(25, actual_executed_tx_count)
+
     def test_get_wallet_owners(self):
         owners = [str(create_address()) for x in range(0, 50)]
 
@@ -258,7 +298,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_owners = self._query(query_request)
         self.assertEqual(expected_owners, actual_owners)
 
-    def test_get_confirmations(self):
+    def test_get_confirmations_and_get_confirmation_count(self):
         # success case: get owner list of confirmed transaction
         owners = [str(create_address()) for x in range(0, 50)]
 
@@ -296,6 +336,20 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
 
+        # getConfirmationCount should be 1
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getConfirmationCount",
+                "params": {"_transactionId":"0"}
+            }
+        }
+        actual_confirmation_count = self._query(query_request)
+        self.assertEqual(1, actual_confirmation_count)
+
         # confirm transaction(odd owners confirm, even owners not confirm)
         confirm_txs = []
         for idx, owner in enumerate(owners):
@@ -328,3 +382,120 @@ class TestIntegrateReadOnly(TestIntegrateBase):
 
         actual_owners = self._query(query_request)
         self.assertEqual(expected_owners, actual_owners)
+
+        # getConfirmationCount should be 26(submit wallet owner 1 + confirm wallet owner 25)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getConfirmationCount",
+                "params": {"_transactionId":"0"}
+            }
+        }
+        actual_confirmation_count = self._query(query_request)
+        self.assertEqual(26, actual_confirmation_count)
+
+    def test_get_total_number_of_wallet_owner(self):
+        # success case: get total number of wallet owner (should be 3 as default deployed wallet is 2 to 3)
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getWalletOwnerCount",
+                "params": {}
+            }
+        }
+        actual_executed_tx_count = self._query(query_request)
+        self.assertEqual(3, actual_executed_tx_count)
+
+        # success case: after add owner, try get total number of wallet owner (should be 4)
+        add_wallet_owner_params = [
+            {"name": "_walletOwner",
+             "type": "Address",
+             "value": str(self._owner4)}
+        ]
+        submit_tx_params = {"_destination": str(self.multisig_score_addr),
+                            "_method": "addWalletOwner",
+                            "_params": json.dumps(add_wallet_owner_params),
+                            "_description": "add owner4 in wallet"}
+
+        add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                                       addr_to=self.multisig_score_addr,
+                                                       method="submitTransaction",
+                                                       params=submit_tx_params
+                                                       )
+        prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(tx_results[0].status, int(True))
+
+        # confirm transaction
+        confirm_tx_params = {"_transactionId": "0x00"}
+        add_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner2,
+                                                       addr_to=self.multisig_score_addr,
+                                                       method="confirmTransaction",
+                                                       params=confirm_tx_params
+                                                       )
+        prev_block, tx_results = self._make_and_req_block([add_owner_submit_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(int(True), tx_results[0].status)
+
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getWalletOwnerCount",
+                "params": {}
+            }
+        }
+        actual_executed_tx_count = self._query(query_request)
+        self.assertEqual(4, actual_executed_tx_count)
+
+        # success case: after remove owner, try get total number of wallet owner (should be 3)
+        remove_owner_params = [
+            {"name": "_walletOwner",
+             "type": "Address",
+             "value": str(self._owner3)}
+        ]
+        submit_tx_params = {"_destination": str(self.multisig_score_addr),
+                            "_method": "removeWalletOwner",
+                            "_params": json.dumps(remove_owner_params),
+                            "_description": "remove wallet owner3 in wallet"}
+
+        remove_owner_submit_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                                          addr_to=self.multisig_score_addr,
+                                                          method="submitTransaction",
+                                                          params=submit_tx_params
+                                                          )
+        prev_block, tx_results = self._make_and_req_block([remove_owner_submit_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(True, tx_results[0].status)
+
+        # confirm transaction
+        confirm_tx_params = {'_transactionId': '0x01'}
+        confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
+                                              addr_to=self.multisig_score_addr,
+                                              method='confirmTransaction',
+                                              params=confirm_tx_params
+                                              )
+        prev_block, tx_results = self._make_and_req_block([confirm_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(True, tx_results[0].status)
+
+        query_request = {
+            "version": self._version,
+            "from": self._admin,
+            "to": self.multisig_score_addr,
+            "dataType": "call",
+            "data": {
+                "method": "getWalletOwnerCount",
+                "params": {}
+            }
+        }
+        actual_executed_tx_count = self._query(query_request)
+        self.assertEqual(3, actual_executed_tx_count)

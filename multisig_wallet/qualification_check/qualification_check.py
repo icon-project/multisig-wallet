@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from iconservice import *
 
 
@@ -30,8 +29,3 @@ def only_wallet(func):
 
         return func(calling_obj, *args, **kwargs)
     return __wrapper
-
-
-
-
-
