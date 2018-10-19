@@ -105,14 +105,14 @@ class Transaction:
 
     @classmethod
     def from_bytes(cls, buf: bytes):
-        encoded_executed = buf[0]
+        encoded_executed = bool(buf[0])
         encoded_destination = buf[1: 1 + ADDRESS_BYTE_LEN]
         encoded_value = buf[1 + ADDRESS_BYTE_LEN: 1 + ADDRESS_BYTE_LEN + DEFAULT_VALUE_BYTES]
         flexible_vars_json_string = buf[1 + ADDRESS_BYTE_LEN + DEFAULT_VALUE_BYTES:].decode()
         flexible_vars_json = json_loads(flexible_vars_json_string)
 
         return cls(executed=encoded_executed,
-                   destination=Address.from_bytes(encoded_destination.strip(b'\x00')),
+                   destination=Address.from_bytes(encoded_destination),
                    value=int.from_bytes(encoded_value, DATA_BYTE_ORDER),
                    method=flexible_vars_json["method"],
                    params=flexible_vars_json["params"],
@@ -122,7 +122,8 @@ class Transaction:
         encoded_executed = self.executed.to_bytes(1, DATA_BYTE_ORDER)
         encoded_value = self.value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER)
         destination_bytes = self.destination.to_bytes()
-        destination_bytes = destination_bytes if len(destination_bytes) == 21 else b'\x00' + destination_bytes
+        destination_bytes = destination_bytes if len(destination_bytes) == ADDRESS_BYTE_LEN \
+            else b'\x00' + destination_bytes
 
         flexible_vars = dict()
         flexible_vars["method"] = self.method

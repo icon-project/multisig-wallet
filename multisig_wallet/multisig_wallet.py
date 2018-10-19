@@ -161,6 +161,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self._wallet_owner_exist(self.msg.sender)
         # prevent failure of executing transaction caused by 'params' conversion problems
         self._check_params_format_convertible(_params)
+        self._only_positive_number(_value)
 
         # add transaction
         transaction_id = self._add_transaction(_destination, _method, _params, _value, _description)
