@@ -161,6 +161,7 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self._wallet_owner_exist(self.msg.sender)
         # prevent failure of executing transaction caused by 'params' conversion problems
         self._check_params_format_convertible(_params)
+        self._only_positive_number(_value)
 
         # add transaction
         transaction_id = self._add_transaction(_destination, _method, _params, _value, _description)
@@ -191,11 +192,11 @@ class MultiSigWallet(IconScoreBase, IconScoreException):
         self.Revocation(self.msg.sender, _transactionId)
 
     def _add_transaction(self, destination: Address, method: str, params: str, value: int, description: str) -> int:
-        transaction = Transaction(destination=destination,
-                                  method=method,
-                                  params=params,
-                                  value=value,
-                                  description=description)
+        transaction = Transaction.create_transaction_with_validation(destination=destination,
+                                                                     method=method,
+                                                                     params=params,
+                                                                     value=value,
+                                                                     description=description)
         transaction_id = self._transaction_count.get()
 
         self._transactions[transaction_id] = transaction.to_bytes()

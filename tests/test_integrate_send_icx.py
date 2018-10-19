@@ -41,6 +41,25 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         response = self._query(query_request, 'icx_getBalance')
         self.assertEqual(send_icx_value, response)
 
+    def test_send_icx_negative_value(self):
+        # failure case: submit transaction which send -10 icx to token score
+        submit_tx_params = {'_destination': str(self.token_score_addr),
+                            '_description': 'send negative icx value',
+                            '_value': f'{hex(-10*ICX_FACTOR)}'}
+
+        submit_tx = self._make_score_call_tx(addr_from=self._owner1,
+                                             addr_to=self.multisig_score_addr,
+                                             method='submitTransaction',
+                                             params=submit_tx_params
+                                             )
+        prev_block, tx_results = self._make_and_req_block([submit_tx])
+        self._write_precommit_state(prev_block)
+        self.assertEqual(tx_results[0].status, int(False))
+
+        expected_revert_massage = 'only positive number is accepted'
+        actual_revert_massage = tx_results[0].failure.message
+        self.assertEqual(expected_revert_massage, actual_revert_massage)
+
     def test_send_icx_to_score(self):
         # success case: send icx to SCORE(token score)
 
