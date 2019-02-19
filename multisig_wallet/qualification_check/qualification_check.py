@@ -19,7 +19,7 @@ from iconservice import *
 
 def only_wallet(func):
     if not isfunction(func):
-        revert(f"{func} isn't function.")
+        revert(f"{func} is not a function.")
 
     @wraps(func)
     def __wrapper(calling_obj: object, *args, **kwargs):

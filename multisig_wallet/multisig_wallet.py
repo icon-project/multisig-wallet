@@ -106,7 +106,7 @@ class MultiSigWallet(IconScoreBase):
             except IconScoreException as e:
                 revert(f"{e}")
             except:
-                revert("can't convert 'params' json data, check the 'params' parameter")
+                revert("can not convert 'params' json data, check the 'params' parameter")
 
     @staticmethod
     def _only_positive_number(*args):
@@ -129,11 +129,11 @@ class MultiSigWallet(IconScoreBase):
 
     def _confirmed(self, transaction_id: int, wallet_owner: Address):
         if not self._confirmations[transaction_id][wallet_owner]:
-            revert(f"{wallet_owner} has not confirmed to transaction id '{transaction_id}' yet")
+            revert(f"{wallet_owner} has not confirmed to the transaction id '{transaction_id}' yet")
 
     def _not_confirmed(self, transaction_id: int, wallet_owner: Address):
         if self._confirmations[transaction_id][wallet_owner]:
-            revert(f"{wallet_owner} has already confirmed to transaction '{transaction_id}'")
+            revert(f"{wallet_owner} has already confirmed to the transaction '{transaction_id}'")
 
     def _not_executed(self, transaction_id: int):
         # before call this method, check if transaction is exists(use transaction_exists method)
