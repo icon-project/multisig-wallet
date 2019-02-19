@@ -85,7 +85,7 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(False, tx_results[0].status)
 
-        expected_revert_massage = f"{self._owner1} hasn't confirmed to transaction id '0' yet"
+        expected_revert_massage = f"{self._owner1} has not confirmed to transaction id '0' yet"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
