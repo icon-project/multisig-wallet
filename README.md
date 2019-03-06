@@ -38,8 +38,6 @@ If you want to use funds (e.g., send ICX or token) or change the internally set 
 ```json
 {
     "_destination": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71",
-    "_method": "",
-    "_params": "",
     "_description": "send 10 icx to owner1",
     "_value": "0x8ac7230489e80000"
 }
@@ -501,15 +499,15 @@ Submits a transaction which is to be executed when the number of confirmations m
 def submitTransaction(self, _destination: Address, _method: str="", _params: str="", _value: int=0, _description: str=""):
 ```
 
-`_destination` is the SCORE address in which `_method` is defined in. 
+`_destination` is the SCORE address where `_method` is defined.
 
-`_description` is a detailed description of the transaction.
+`_description` is a supplementary explanation of the transaction. (optional parameter)
 
-`_value` is amount of ICX coin in loop (1 ICX == 1 ^ 18 loop).
+`_value` is amount of ICX coin in loop (1 ICX == 1 ^ 18 loop). This parameter is used when transferring ICX coin or calling 'payable' method. (optional parameter)
 
-`_method` is the name of the method that is to be executed when the number of confirmations meets the 'requirement' value.
+`_method` is the name of the method that is to be executed when the number of confirmations meets the 'requirement' value. In the case of transferring ICX coin, do not have to specify this parameter. (optional parameter)
 
-`_params` is a stringified JSON data. This data is used as the arguments of the `_method` when it is executed. Below is the format. **name** is parameter's name, **type** is parameter's type (supported types are `int`, `str`, `bool`, `Address` and `bytes`), **value** is the actual data.
+`_params` is a stringified JSON data. This data is used as the arguments of the `_method` when it is executed. Below is the format. **name** is parameter's name, **type** is parameter's type (supported types are `int`, `str`, `bool`, `Address` and `bytes`), **value** is the actual data. In the case of transferring ICX coin, do not have to specify this parameter. (optional parameter)
 
 
 ![](./images/submitTransaction_json_format.png)
@@ -743,7 +741,7 @@ def revokeTransaction(self, _transactionId: int):
 
 
 
-### Methods (only called by wallet)
+### Methods (only callable by wallet)
 
 These methods only can be called by the multisig wallet SCORE itself. **In short, you can not call those methods directly (or it will fail)**. If you want to execute these methods, call `submitTransaction` with the method's information as a parameter.
 
