@@ -16,6 +16,8 @@
 
 import json
 
+from iconservice.base.exception import RevertException
+
 from tests import create_address
 from tests.test_integrate_base import TestIntegrateBase
 from iconservice import IconScoreException, ZERO_SCORE_ADDRESS
@@ -134,10 +136,10 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             }
         }
 
-        expected_massage = "Requests that exceed the allowed amount"
+        expected_massage = "requests that exceed the allowed amount"
         try:
             actual_massage = self._query(query_request)
-        except IconScoreException as e:
+        except RevertException as e:
             actual_massage = e.message
             pass
         self.assertEqual(expected_massage, actual_massage)
