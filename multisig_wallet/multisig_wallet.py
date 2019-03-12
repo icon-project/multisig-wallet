@@ -65,15 +65,19 @@ class MultiSigWallet(IconScoreBase):
 
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
+        self.__db = db
         # store transaction instance as a serialized bytes
         # _transactions's key: transaction id(int type)
         self._transactions = DictDB("transactions", db, value_type=bytes)
         # store wallet owners' confirmations of each transaction
         # _confirmations's key: transaction id(int type), address(Address type)
         self._confirmations = DictDB("confirmations", db, value_type=bool, depth=2)
-        self._wallet_owners = ArrayDB("wallet_owners", db, value_type=Address)
         self._required = VarDB("required", db, value_type=int)
         self._transaction_count = VarDB('transactionCount', db, value_type=int)
+
+    @property
+    def _wallet_owners(self) -> ArrayDB:
+        return ArrayDB("wallet_owners", self.__db, value_type=Address)
 
     def on_install(self, _walletOwners: str, _required: int) -> None:
         super().on_install()
