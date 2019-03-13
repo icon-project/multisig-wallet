@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.2] -  March, 13, 2019
+### Added
+N/A
+
+### Changed
+* Implement _wallet_owners property to avoid ArrayDB temporary issue
+
+### Removed
+N/A
+
+
 ## [0.9.1] -  March, 11, 2019
 ### Added
 N/A
