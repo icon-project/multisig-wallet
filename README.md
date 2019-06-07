@@ -27,7 +27,7 @@ The first step is to deploy a multisig wallet SCORE. At the time of deployment, 
 ```json
 {
     "_walletOwners": "hx7f39710d3718e7d1f307d7c71755fbbe76be3c71,hx07a2731037cfe59dbf76579d8ba1fbfc02616135,hxed36008ce6be8c8deb9acdfc05d1a06f5576a2db",
-    "_required": "2"
+    "_required": "0x2"
 }
 ```
 
@@ -67,12 +67,10 @@ def getRequirement(self) -> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-            "method": "getRequirement",
-            "params": {}
+            "method": "getRequirement"
         }
     }
 }
@@ -105,13 +103,12 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionInfo",
             "params": {
-                "_transactionId": "0x00"
+                "_transactionId": "0x0"
             }
         }
     }
@@ -153,13 +150,12 @@ def getTransactionsExecuted(self, _transactionId: int) -> bool:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionsExecuted",
             "params": {
-                "_transactionId": "0x00"
+                "_transactionId": "0x0"
             }
         }
     }
@@ -193,7 +189,6 @@ def checkIfWalletOwner(self, _walletOwner: Address) -> bool:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
@@ -233,12 +228,10 @@ def getWalletOwnerCount(self) -> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
-            "method": "getWalletOwnerCount",
-            "params": {}
+            "method": "getWalletOwnerCount"
         }
     }
 }
@@ -271,14 +264,13 @@ def getWalletOwners(self, _offset: int, _count: int) -> list:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getWalletOwners",
             "params": {
-                "_offset": "0x00",
-                "_count": "0x0A"
+                "_offset": "0x0",
+                "_count": "0xa"
             }
         }
     }
@@ -317,13 +309,12 @@ def getConfirmationCount(self, _transactionId: int) -> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getConfirmationCount",
             "params": {
-                "_transactionId": "0x00"
+                "_transactionId": "0x0"
             }
         }
     }
@@ -356,15 +347,14 @@ def getConfirmations(self, _offset: int, _count: int, _transactionId: int) -> li
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getConfirmations",
             "params": {
-                "_offset": "0x00",
-                "_count": "0x0A",
-                "_transactionId": "0x00"
+                "_offset": "0x0",
+                "_count": "0xa",
+                "_transactionId": "0x0"
             }
         }
     }
@@ -400,14 +390,13 @@ def getTransactionCount(self, _pending: bool=True, _executed: bool=True) -> int:
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionCount",
             "params": {
-                "_pending": "0x00",
-                "_executed": "0x01"
+                "_pending": "0x0",
+                "_executed": "0x1"
             }
         }
     }
@@ -441,16 +430,15 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
     "method": "icx_call",
     "id": 1,
     "params": {
-        "from": "hx5dd0b2a161bc16194d38b050744c7cd623626661",
         "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
         "dataType": "call",
         "data": {           
             "method": "getTransactionList",
             "params": {
-                "_offset": "0x00",
-                "_count": "0x0A",
-                "_pending": "0x01",
-                "_executed": "0x01"
+                "_offset": "0x0",
+                "_count": "0xa",
+                "_pending": "0x1",
+                "_executed": "0x1"
             }
         }
     }
@@ -614,7 +602,7 @@ def confirmTransaction(self, _transactionId: int):
     "data": {
       "method": "confirmTransaction",
       "params": {
-        "_transactionId": "0x00"
+        "_transactionId": "0x0"
       }
     }
   },
@@ -698,7 +686,7 @@ def revokeTransaction(self, _transactionId: int):
     "data": {
       "method": "revokeTransaction",
       "params": {
-        "_transactionId": "0x01"
+        "_transactionId": "0x1"
       }
     }
   },
