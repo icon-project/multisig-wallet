@@ -31,6 +31,10 @@ class MultiSigWallet(IconScoreBase):
     def Revocation(self, _sender: Address, _transactionId: int):
         pass
 
+    @eventlog(indexed=2)
+    def Cancellation(self, _sender: Address, _transactionId: int):
+        pass
+
     @eventlog(indexed=1)
     def Submission(self, _transactionId: int):
         pass
@@ -139,6 +143,10 @@ class MultiSigWallet(IconScoreBase):
         if self._confirmations[transaction_id][wallet_owner]:
             revert(f"{wallet_owner} has already confirmed to the transaction '{transaction_id}'")
 
+    def _none_confirmed(self, transaction_id: int):
+        if self.getConfirmationCount(transaction_id) > 0:
+            revert(f"The transaction '{transaction_id}' has still at least one confirmation")
+
     def _not_executed(self, transaction_id: int):
         # before call this method, check if transaction is exists(use transaction_exists method)
         if self._transactions[transaction_id][0] == 1:
@@ -197,6 +205,17 @@ class MultiSigWallet(IconScoreBase):
 
         self.Revocation(self.msg.sender, _transactionId)
 
+    @external
+    def cancelTransaction(self, _transactionId: int):
+        self._wallet_owner_exist(self.msg.sender)
+        self._transaction_exists(_transactionId)
+        self._not_executed(_transactionId)
+        self._none_confirmed(_transactionId)
+
+        self._delete_transaction(_transactionId)
+
+        self.Cancellation(self.msg.sender, _transactionId)
+
     def _add_transaction(self, destination: Address, method: str, params: str, value: int, description: str) -> int:
         transaction = Transaction.create_transaction_with_validation(destination=destination,
                                                                      method=method,
@@ -210,6 +229,9 @@ class MultiSigWallet(IconScoreBase):
 
         self.Submission(transaction_id)
         return transaction_id
+
+    def _delete_transaction(self, transaction_id: int):
+        self._transactions.remove(transaction_id)
 
     def _execute_transaction(self, transaction_id: int):
         # as this method can't be called from other SCORE or EOA, doesn't check owner, transactions_id, confirmations.
@@ -377,7 +399,9 @@ class MultiSigWallet(IconScoreBase):
     def getTransactionCount(self, _pending: bool = True, _executed: bool = True) -> int:
         tx_count = 0
         for tx_id in range(self._transaction_count.get()):
-            if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
+            if (self._transactions[tx_id] is not None) and (
+                    (_pending and not self._transactions[tx_id][0])
+                    or (_executed and self._transactions[tx_id][0])):
                 tx_count += 1
 
         return tx_count
@@ -396,7 +420,9 @@ class MultiSigWallet(IconScoreBase):
         _count = _offset + _count if total_transaction_count >= _offset + _count else total_transaction_count
 
         for tx_id in range(_offset, _count):
-            if (_pending and not self._transactions[tx_id][0]) or (_executed and self._transactions[tx_id][0]):
+            if (self._transactions[tx_id] is not None) and (
+                    (_pending and not self._transactions[tx_id][0])
+                    or (_executed and self._transactions[tx_id][0])):
                 transaction = Transaction.from_bytes(self._transactions[tx_id])
 
                 tx_dict = transaction.to_dict()
