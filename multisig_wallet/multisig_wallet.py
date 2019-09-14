@@ -412,10 +412,12 @@ class MultiSigWallet(IconScoreBase):
         transaction_list = []
         total_transaction_count = self._transaction_count.get()
 
-        # prevent searching not existed transaction
-        _count = _offset + _count if total_transaction_count >= _offset + _count else total_transaction_count
+        for tx_id in range(_offset, total_transaction_count):
 
-        for tx_id in range(_offset, _count):
+            # Iterate until we reach the correct amount of transactions
+            if len(transaction_list) == _count:
+                break
+
             if (self._transactions[tx_id] is not None) and (
                     (_pending and not self._transactions[tx_id][0])
                     or (_executed and self._transactions[tx_id][0])):
