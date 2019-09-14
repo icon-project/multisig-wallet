@@ -728,6 +728,75 @@ def revokeTransaction(self, _transactionId: int):
 ```
 
 
+#### cancelTransaction
+
+Cancels a transaction corresponding to the `_transactionId`. A transaction can be cancelled only when it has 0 confirmation. This method is only valid for pending transaction.
+
+```python
+@external
+def cancelTransaction(self, _transactionId: int):
+```
+
+**Example**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "icx_sendTransaction",
+  "params": {
+    "version": "0x3",
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "value": "0x0",
+    "stepLimit": "0x3000000",
+    "timestamp": "0x573117f1d6568",
+    "nid": "0x3",
+    "nonce": "0x1",
+    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
+    "dataType": "call",
+    "data": {
+      "method": "cancelTransaction",
+      "params": {
+        "_transactionId": "0x1"
+      }
+    }
+  },
+  "id": 1
+}
+```
+
+**Sendtx result**
+
+```json
+{
+    "jsonrpc": "2.0",
+    "result": {
+        "txHash": "0x70a5c03cd41d205b5b93abf57e53160d3f58679b1f3c254a10db9d220ecfac21",
+        "blockHeight": "0x7",
+        "blockHash": "0x92558d91cc52f0ff75686d8b5691bf5cdcbd586eff625b9c93750b510d324887",
+        "txIndex": "0x0",
+        "to": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+        "stepUsed": "0xf9c4a",
+        "stepPrice": "0x0",
+        "cumulativeStepUsed": "0xf9c4a",
+        "eventLogs": [
+            {
+                "scoreAddress": "cx30d7fcf580135d9f9eb491292555a5b29d9314cb",
+                "indexed": [
+                    "Cancellation(Address,int)",
+                    "hx5dd0b2a161bc16194d38b050744c7cd623626661",
+                    "0x1"
+                ],
+                "data": []
+            }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000400000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000020000000001300000000000000000000000000000000000000000000000000000000000000001000000000000",
+        "status": "0x1"
+    },
+    "id": 1
+}
+
+```
+
 
 ### Methods (only callable by wallet)
 
@@ -786,6 +855,15 @@ Must trigger on any revoked confirmation.
 ```python
 @eventlog(indexed=2)
 def Revocation(self, _sender: Address, _transactionId: int):
+    pass
+```
+#### Cancellation
+
+Must trigger on any cancelled confirmation.
+
+```python
+@eventlog(indexed=2)
+def Cancellation(self, _sender: Address, _transactionId: int):
     pass
 ```
 #### Submission
