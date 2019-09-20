@@ -37,10 +37,10 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
                             '_description': 'change requirements 2 to 3'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
-                                            addr_to=self.multisig_score_addr,
-                                            method='submitTransaction',
-                                            params=submit_tx_params
-                                            )
+                                             addr_to=self.multisig_score_addr,
+                                             method='submitTransaction',
+                                             params=submit_tx_params
+                                             )
         prev_block, tx_results = self._make_and_req_block([submit_tx])
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
@@ -135,6 +135,6 @@ class TestIntegrateRevokeTransaction(TestIntegrateBase):
                                               )
         prev_block, tx_results = self._make_and_req_block([confirm_tx])
         self._write_precommit_state(prev_block)
-        expected_revert_massage = "transaction id '0' has already been executed"
+        expected_revert_massage = "Transaction ID(0) has already been executed"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)

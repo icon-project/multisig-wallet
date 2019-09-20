@@ -71,7 +71,7 @@ class TestIntegrateBase(TestCase):
         config.update_conf({ConfigKey.BUILTIN_SCORE_OWNER: str(self._admin)})
         config.update_conf({ConfigKey.SERVICE: {ConfigKey.SERVICE_AUDIT: False,
                                                 ConfigKey.SERVICE_FEE: False,
-                                                ConfigKey.SERVICE_DEPLOYER_WHITELIST: False,
+                                                ConfigKey.SERVICE_DEPLOYER_WHITE_LIST: False,
                                                 ConfigKey.SERVICE_SCORE_PACKAGE_VALIDATOR: False}})
         config.update_conf({ConfigKey.SCORE_ROOT_PATH: self._score_root_path,
                             ConfigKey.STATE_DB_ROOT_PATH: self._state_db_root_path})
@@ -138,13 +138,13 @@ class TestIntegrateBase(TestCase):
             block,
             [tx]
         )
-        self.icon_service_engine.commit(block)
+        self.icon_service_engine.commit(block.height, block.hash, None)
         self._block_height += 1
         self._prev_block_hash = block_hash
 
         return invoke_response
 
-    #Todo: need to be refactoring
+    # Todo: need to be refactoring
     def _deploy_multisig_wallet(self):
         tx1 = self._make_deploy_tx("",
                                    "multisig_wallet",
@@ -164,7 +164,7 @@ class TestIntegrateBase(TestCase):
         query_request = {
             "version": self._version,
             "from": self._admin,
-            "to": multisig_score_addr ,
+            "to": multisig_score_addr,
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
@@ -193,7 +193,7 @@ class TestIntegrateBase(TestCase):
         return multisig_score_addr
 
     # Todo: need to be refactoring
-    def _deploy_multisig_wallet_and_token_score(self, token_total_supply:int, token_owner: Address):
+    def _deploy_multisig_wallet_and_token_score(self, token_total_supply: int, token_owner: Address):
         tx1 = self._make_deploy_tx("",
                                    "multisig_wallet",
                                    self._addr_array[0],
@@ -396,11 +396,11 @@ class TestIntegrateBase(TestCase):
 
         block = Block(block_height, block_hash, timestamp_us, self._prev_block_hash)
 
-        invoke_response, _ = self.icon_service_engine.invoke(block, tx_list)
+        invoke_response, _, _, _ = self.icon_service_engine.invoke(block, tx_list)
         return block, invoke_response
 
     def _write_precommit_state(self, block: 'Block') -> None:
-        self.icon_service_engine.commit(block)
+        self.icon_service_engine.commit(block.height, block.hash, None)
         self._block_height += 1
         self._prev_block_hash = block.hash
 

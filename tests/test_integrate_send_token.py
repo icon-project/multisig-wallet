@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tests.test_integrate_base import TestIntegrateBase
-
 import json
+
+from tests.test_integrate_base import TestIntegrateBase
 
 
 class TestIntegrateSendToken(TestIntegrateBase):

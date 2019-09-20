@@ -128,7 +128,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionsExecuted",
-                "params": {"_transactionId":"0"}
+                "params": {"_transactionId": "0"}
             }
         }
         expected_flag_state = True
@@ -269,7 +269,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(False, tx_results[0].status)
 
-        expected_revert_message = "transaction id '1' is not exist"
+        expected_revert_message = "Transaction ID(1) does not exist"
         actual_revert_message = tx_results[0].failure.message
         self.assertEqual(expected_revert_message, actual_revert_message)
 
@@ -299,7 +299,7 @@ class TestIntegrateConfirmTransaction(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        #confirm transaction
+        # confirm transaction
         confirm_tx_params = {'_transactionId': '0x00'}
         confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
                                               addr_to=self.multisig_score_addr,

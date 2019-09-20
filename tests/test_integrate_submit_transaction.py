@@ -83,7 +83,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
                                             )
         prev_block, tx_results = self._make_and_req_block([valid_tx])
         self._write_precommit_state(prev_block)
-        expected_revert_massage = "type and value's actual type are not match. (32000)"
+        expected_revert_massage = "type and value's actual type are not match. (32)"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
@@ -106,7 +106,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([valid_tx])
         self._write_precommit_state(prev_block)
         expected_revert_massage = \
-            "dict is not supported type (only int, str, bool, Address, bytes are supported) (32000)"
+            "dict is not supported type (only int, str, bool, Address, bytes are supported) (32)"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
@@ -188,42 +188,42 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
                            '_params': json.dumps(valid_params),
                            '_description': 'valid transaction1'}
         valid_tx1 = self._make_score_call_tx(
-                                            addr_from=self._owner1,
-                                            addr_to=self.multisig_score_addr,
-                                            method='submitTransaction',
-                                            params=valid_tx_params
-                                            )
+            addr_from=self._owner1,
+            addr_to=self.multisig_score_addr,
+            method='submitTransaction',
+            params=valid_tx_params
+        )
         valid_tx_params = {'_destination': str(self.multisig_score_addr),
                            '_method': 'changeRequirement',
                            '_params': json.dumps(valid_params),
                            '_description': 'valid transaction2'}
         valid_tx2 = self._make_score_call_tx(
-                                            addr_from=self._owner1,
-                                            addr_to=self.multisig_score_addr,
-                                            method='submitTransaction',
-                                            params=valid_tx_params
-                                            )
+            addr_from=self._owner1,
+            addr_to=self.multisig_score_addr,
+            method='submitTransaction',
+            params=valid_tx_params
+        )
         invalid_tx_params = {
-                    '_destination': str(self.multisig_score_addr),
-                    '_method': 'changeRequirement',
-                    '_params': json.dumps(invalid_params),
-                    '_description': 'invalid transaction'}
+            '_destination': str(self.multisig_score_addr),
+            '_method': 'changeRequirement',
+            '_params': json.dumps(invalid_params),
+            '_description': 'invalid transaction'}
         invalid_tx = self._make_score_call_tx(
-                                            addr_from=self._owner1,
-                                            addr_to=self.multisig_score_addr,
-                                            method='submitTransaction',
-                                            params=invalid_tx_params
-                                            )
+            addr_from=self._owner1,
+            addr_to=self.multisig_score_addr,
+            method='submitTransaction',
+            params=invalid_tx_params
+        )
         valid_tx_params = {'_destination': str(self.multisig_score_addr),
                            '_method': 'changeRequirement',
                            '_params': json.dumps(valid_params),
                            '_description': 'valid transaction3'}
         valid_tx3 = self._make_score_call_tx(
-                                            addr_from=self._owner1,
-                                            addr_to=self.multisig_score_addr,
-                                            method='submitTransaction',
-                                            params=valid_tx_params
-                                            )
+            addr_from=self._owner1,
+            addr_to=self.multisig_score_addr,
+            method='submitTransaction',
+            params=valid_tx_params
+        )
 
         prev_block, tx_results = self._make_and_req_block(
             [valid_tx1, valid_tx2, invalid_tx, valid_tx3])

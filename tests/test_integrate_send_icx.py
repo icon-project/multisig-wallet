@@ -18,13 +18,14 @@ from tests.test_integrate_base import TestIntegrateBase
 
 ICX_FACTOR = 10 ** 18
 
+
 class TestIntegrateSendIcx(TestIntegrateBase):
     def setUp(self):
         super().setUp()
         self.multisig_score_addr, self.token_score_addr = \
             self._deploy_multisig_wallet_and_token_score(token_total_supply=10000, token_owner=self._owner1)
 
-    def deposit_icx_to_multisig_score(self, value:int):
+    def deposit_icx_to_multisig_score(self, value: int):
         send_icx_value = value
         icx_send_tx = self._make_icx_send_tx(self._genesis,
                                              self.multisig_score_addr,
@@ -45,7 +46,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         # failure case: submit transaction which send -10 icx to token score
         submit_tx_params = {'_destination': str(self.token_score_addr),
                             '_description': 'send negative icx value',
-                            '_value': f'{hex(-10*ICX_FACTOR)}'}
+                            '_value': f'{hex(-10 * ICX_FACTOR)}'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
@@ -56,7 +57,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(tx_results[0].status, int(False))
 
-        expected_revert_massage = 'only positive number is accepted'
+        expected_revert_massage = f'{-10 * ICX_FACTOR} should be 0 and above'
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
@@ -70,7 +71,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         # submit transaction which send 10 icx to token score
         submit_tx_params = {'_destination': str(self.token_score_addr),
                             '_description': 'send 10 icx to token score',
-                            '_value': f'{hex(10*ICX_FACTOR)}'}
+                            '_value': f'{hex(10 * ICX_FACTOR)}'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
@@ -168,7 +169,7 @@ class TestIntegrateSendIcx(TestIntegrateBase):
         # submit transaction which send 10 icx to owner4
         submit_tx_params = {'_destination': str(self._owner4),
                             '_description': 'send 10 icx to owner4',
-                            '_value': f'{hex(10*ICX_FACTOR)}'}
+                            '_value': f'{hex(10 * ICX_FACTOR)}'}
 
         submit_tx = self._make_score_call_tx(addr_from=self._owner1,
                                              addr_to=self.multisig_score_addr,
