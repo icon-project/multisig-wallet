@@ -82,18 +82,14 @@ class Transaction:
                                            value: int,
                                            description: str,
                                            executed: bool = False):
-        # as None type can't be converted to bytes, must be changed to ""
-        method = "" if method is None else method
-        params = "" if params is None else params
-
         if len(method) > MAX_METHOD_SIZE \
                 or len(params) > MAX_PARAMS_CNT \
                 or len(description) > MAX_DESCRIPTION_SIZE:
-            revert("too long parameter length")
+            revert("Invalid parameter size")
         try:
             value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER)
         except OverflowError:
-            revert("exceed ICX amount you can send at one time")
+            revert("Invalid ICX amount - too big")
 
         return cls(executed=executed,
                    destination=destination,

@@ -134,7 +134,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             }
         }
 
-        expected_massage = "requests that exceed the allowed amount"
+        expected_massage = "Exceed max of requests"
         try:
             actual_massage = self._query(query_request)
         except IconScoreException as e:

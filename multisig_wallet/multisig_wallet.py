@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .type_converter.type_converter import params_type_converter
 from .qualification_check.qualification_check import *
 from .transaction import Transaction
+from .type_converter.type_converter import params_type_converter
 
 
 class MultiSigWallet(IconScoreBase):
@@ -70,13 +70,14 @@ class MultiSigWallet(IconScoreBase):
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
         # store transaction instance as a serialized bytes
-        # _transactions: { index: int = transaction: bytes }
+        # _transactions[transaction_id: int] = transaction: bytes
         self._transactions = DictDB("transactions", db, value_type=bytes)
-        # store wallet owners' confirmations of each transaction
-        # _confirmations: { index: int =  address: Address }
         self._wallet_owners = ArrayDB("wallet_owners", db, value_type=Address)
+        # store wallet owners' confirmations of each transaction
+        # _confirmations[transaction_id: int][address: Address] = bool
         self._confirmations = DictDB("confirmations", db, value_type=bool, depth=2)
         self._required = VarDB("required", db, value_type=int)
+        # total generated transaction count == the last index of transactions
         self._transaction_count = VarDB('transactionCount', db, value_type=int)
 
     def on_install(self, _walletOwners: str, _required: int) -> None:
@@ -100,17 +101,17 @@ class MultiSigWallet(IconScoreBase):
         # when user input None as a _params' value,
         # this will be changed to "" when creating Transaction instance.
         # "" will be changed to {} when finally execute transaction. so doesn't check format
-        if json_formatted_params != "" and json_formatted_params is not None:
+        if json_formatted_params:
             try:
                 params = json_loads(json_formatted_params)
                 for param in params:
                     params_type_converter(param["type"], param["value"])
             except ValueError as e:
-                revert(f"json format error: {e}")
+                revert(f"JSON format error: {e}")
             except IconScoreException as e:
                 revert(f"{e}")
             except:
-                revert("can not convert 'params' json data, check the 'params' parameter")
+                revert("Converting params fails")
 
     @staticmethod
     def _check_0_and_above(*args):
@@ -153,6 +154,14 @@ class MultiSigWallet(IconScoreBase):
                 not 0 < required <= wallet_owner_count or wallet_owner_count == 0:
             revert("Invalid requirement")
 
+    def _is_confirmed(self, transaction_id) -> bool:
+        count = 0
+        for wallet_owner in self._wallet_owners:
+            if self._confirmations[transaction_id][wallet_owner]:
+                count += 1
+
+        return count == self._required.get()
+
     @payable
     def fallback(self):
         if self.msg.value > 0:
@@ -167,7 +176,6 @@ class MultiSigWallet(IconScoreBase):
     def submitTransaction(self, _destination: Address,
                           _method: str = "", _params: str = "", _value: int = 0, _description: str = ""):
         self._check_wallet_owner(self.msg.sender)
-        # prevent failure of executing transaction caused by 'params' conversion problems
         self._check_valid_params_format(_params)
         self._check_0_and_above(_value)
 
@@ -223,11 +231,10 @@ class MultiSigWallet(IconScoreBase):
         self.Submission(transaction_id)
         return transaction_id
 
-    def _delete_transaction(self, transaction_id: int):
+    def _delete_transaction(self, transaction_id: int) -> None:
         self._transactions.remove(transaction_id)
 
-    def _execute_transaction(self, transaction_id: int):
-        # as this method can't be called from other SCORE or EOA, doesn't check owner, transactions_id, confirmations.
+    def _execute_transaction(self, transaction_id: int) -> None:
         if self._is_confirmed(transaction_id):
             if self._external_call(self._transactions[transaction_id]):
                 self._transactions[transaction_id] = True.to_bytes(1, "big") + self._transactions[transaction_id][1:]
@@ -238,10 +245,7 @@ class MultiSigWallet(IconScoreBase):
 
     def _external_call(self, serialized_tx: bytes) -> bool:
         transaction = Transaction.from_bytes(serialized_tx)
-
-        # if method == "" -> None
         method_name = None if transaction.method == "" else transaction.method
-        # if params == "" -> {}
         method_params = {}
         if transaction.params != "":
             params = json_loads(transaction.params)
@@ -261,19 +265,10 @@ class MultiSigWallet(IconScoreBase):
 
         return execute_result
 
-    def _is_confirmed(self, transaction_id) -> bool:
-        count = 0
-        for wallet_owner in self._wallet_owners:
-            if self._confirmations[transaction_id][wallet_owner]:
-                count += 1
-
-        return count == self._required.get()
-
     @only_wallet
     @external
     def addWalletOwner(self, _walletOwner: Address):
         self._check_not_wallet_owner(_walletOwner)
-        # check if owner's count exceed '_MAX_OWNER_COUNT'
         self._check_requirement(len(self._wallet_owners) + 1, self._required.get())
 
         self._wallet_owners.put(_walletOwner)
@@ -298,8 +293,7 @@ class MultiSigWallet(IconScoreBase):
     @external
     def removeWalletOwner(self, _walletOwner: Address):
         self._check_wallet_owner(_walletOwner)
-        # if all owners are removed, this contract can not be executed.
-        # so check if _owner is only one left in this wallet
+
         wallet_owners_count = len(self._wallet_owners)
         self._check_requirement(wallet_owners_count - 1, self._required.get())
 
@@ -328,17 +322,16 @@ class MultiSigWallet(IconScoreBase):
 
     @external(readonly=True)
     def getTransactionInfo(self, _transactionId: int) -> dict:
-        if self._transactions[_transactionId] is not None:
+        tx_dict = {}
+        if self._transactions[_transactionId]:
             transaction = Transaction.from_bytes(self._transactions[_transactionId])
             tx_dict = transaction.to_dict()
             tx_dict["_transaction_id"] = _transactionId
-            return tx_dict
-        else:
-            return {}
+        return tx_dict
 
     @external(readonly=True)
     def getTransactionsExecuted(self, _transactionId: int) -> bool:
-        if self._transactions[_transactionId] is not None:
+        if self._transactions[_transactionId]:
             return bool(self._transactions[_transactionId][0])
         else:
             return False
@@ -367,6 +360,8 @@ class MultiSigWallet(IconScoreBase):
 
     @external(readonly=True)
     def getConfirmationCount(self, _transactionId: int) -> int:
+        self._check_valid_transaction(_transactionId)
+
         count = 0
         for wallet_owner in self._wallet_owners:
             if self._confirmations[_transactionId][wallet_owner]:
@@ -375,6 +370,7 @@ class MultiSigWallet(IconScoreBase):
 
     @external(readonly=True)
     def getConfirmations(self, _offset: int, _count: int, _transactionId: int) -> list:
+        self._check_valid_transaction(_transactionId)
         self._check_0_and_above(_offset, _count)
 
         confirmed_wallet_owners = []
@@ -396,7 +392,6 @@ class MultiSigWallet(IconScoreBase):
                     (_pending and not self._transactions[tx_id][0])
                     or (_executed and self._transactions[tx_id][0])):
                 tx_count += 1
-
         return tx_count
 
     @external(readonly=True)
@@ -404,18 +399,15 @@ class MultiSigWallet(IconScoreBase):
         self._check_0_and_above(_offset, _count)
 
         if _count > self._MAX_DATA_REQUEST_AMOUNT:
-            revert("requests that exceed the allowed amount")
+            revert("Exceed max of requests")
 
         transaction_list = []
-        total_transaction_count = self._transaction_count.get()
+        transaction_count = self._transaction_count.get()
 
-        for tx_id in range(_offset, total_transaction_count):
-
-            # Iterate until we reach the correct amount of transactions
+        for tx_id in range(_offset, transaction_count):
             if len(transaction_list) == _count:
                 break
-
-            if (self._transactions[tx_id] is not None) and (
+            if self._transactions[tx_id] is not None and (
                     (_pending and not self._transactions[tx_id][0])
                     or (_executed and self._transactions[tx_id][0])):
                 transaction = Transaction.from_bytes(self._transactions[tx_id])
