@@ -404,9 +404,7 @@ class MultiSigWallet(IconScoreBase):
         transaction_list = []
         transaction_count = self._transaction_count.get()
 
-        for tx_id in range(_offset, transaction_count):
-            if len(transaction_list) == _count:
-                break
+        for tx_id in range(_offset, min(transaction_count, _offset + _count)):
             if self._transactions[tx_id] is not None and (
                     (_pending and not self._transactions[tx_id][0])
                     or (_executed and self._transactions[tx_id][0])):

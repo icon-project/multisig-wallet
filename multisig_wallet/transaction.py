@@ -82,6 +82,11 @@ class Transaction:
                                            value: int,
                                            description: str,
                                            executed: bool = False):
+
+        # as None type can't be converted to bytes, must be changed to ""
+        method = "" if method is None else method
+        params = "" if params is None else params
+
         if len(method) > MAX_METHOD_SIZE \
                 or len(params) > MAX_PARAMS_CNT \
                 or len(description) > MAX_DESCRIPTION_SIZE:
