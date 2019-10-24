@@ -188,7 +188,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
         self._write_precommit_state(prev_block)
         self.assertEqual(int(True), tx_results[0].status)
 
-        #confirm transaction
+        # confirm transaction
         confirm_tx_params = {'_transactionId': '0x00'}
         confirm_tx = self._make_score_call_tx(addr_from=self._owner2,
                                               addr_to=self.multisig_score_addr,
@@ -314,7 +314,7 @@ class TestIntegrateWalletMethod(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getWalletOwners",
-                "params": {"_offset": "0","_count": "10"}
+                "params": {"_offset": "0", "_count": "10"}
             }
         }
         response = self._query(query_request)

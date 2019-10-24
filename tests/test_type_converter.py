@@ -17,9 +17,10 @@
 from iconservice import *
 from iconservice.base.exception import InvalidParamsException
 
-from tests.test_integrate_base import TestIntegrateBase
 from multisig_wallet.type_converter import type_converter
-from tests import create_address, create_tx_hash, create_block_hash
+from tests import create_address
+from tests.test_integrate_base import TestIntegrateBase
+
 
 # transaction's parameter accept json format so support string, int, bool, null, array as a type
 class TestTypeConverter(TestIntegrateBase):
@@ -151,7 +152,7 @@ class TestTypeConverter(TestIntegrateBase):
 
     def test_convert_value_bytes_from_bytes(self):
         # success case: convert string type bytes data to bytes
-        expected = bytes.fromhex( "de ad be ef 00")
+        expected = bytes.fromhex("de ad be ef 00")
         actual = type_converter.params_type_converter('bytes', "de ad be ef 00")
         self.assertEqual(expected, actual)
 

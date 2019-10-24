@@ -16,14 +16,13 @@
 
 from iconservice import *
 
-# address, value fix
-ADDRESS_BYTE_LEN = 21
+ADDRESS_BYTE_SIZE = 21
 DEFAULT_VALUE_BYTES = 16
-DATA_BYTE_ORDER = "big"
+DATA_BYTE_ORDER = "big"  # big endian
 
-MAX_METHOD_LEN = 100
-MAX_PARAMS_LEN = 1000
-MAX_DESCRIPTION_LEN = 1000
+MAX_METHOD_SIZE = 100
+MAX_PARAMS_CNT = 1000
+MAX_DESCRIPTION_SIZE = 1000
 
 
 class Transaction:
@@ -83,18 +82,19 @@ class Transaction:
                                            value: int,
                                            description: str,
                                            executed: bool = False):
+
         # as None type can't be converted to bytes, must be changed to ""
         method = "" if method is None else method
         params = "" if params is None else params
 
-        if len(method) > MAX_METHOD_LEN \
-                or len(params) > MAX_PARAMS_LEN \
-                or len(description) > MAX_DESCRIPTION_LEN:
-            revert("too long parameter length")
+        if len(method) > MAX_METHOD_SIZE \
+                or len(params) > MAX_PARAMS_CNT \
+                or len(description) > MAX_DESCRIPTION_SIZE:
+            revert("Invalid parameter size")
         try:
             value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER)
         except OverflowError:
-            revert("exceed ICX amount you can send at one time")
+            revert("Invalid ICX amount - too big")
 
         return cls(executed=executed,
                    destination=destination,
@@ -106,9 +106,9 @@ class Transaction:
     @classmethod
     def from_bytes(cls, buf: bytes):
         encoded_executed = bool(buf[0])
-        encoded_destination = buf[1: 1 + ADDRESS_BYTE_LEN]
-        encoded_value = buf[1 + ADDRESS_BYTE_LEN: 1 + ADDRESS_BYTE_LEN + DEFAULT_VALUE_BYTES]
-        flexible_vars_json_string = buf[1 + ADDRESS_BYTE_LEN + DEFAULT_VALUE_BYTES:].decode()
+        encoded_destination = buf[1: 1 + ADDRESS_BYTE_SIZE]
+        encoded_value = buf[1 + ADDRESS_BYTE_SIZE: 1 + ADDRESS_BYTE_SIZE + DEFAULT_VALUE_BYTES]
+        flexible_vars_json_string = buf[1 + ADDRESS_BYTE_SIZE + DEFAULT_VALUE_BYTES:].decode()
         flexible_vars_json = json_loads(flexible_vars_json_string)
 
         return cls(executed=encoded_executed,
@@ -122,7 +122,7 @@ class Transaction:
         encoded_executed = self.executed.to_bytes(1, DATA_BYTE_ORDER)
         encoded_value = self.value.to_bytes(DEFAULT_VALUE_BYTES, DATA_BYTE_ORDER)
         destination_bytes = self.destination.to_bytes()
-        destination_bytes = destination_bytes if len(destination_bytes) == ADDRESS_BYTE_LEN \
+        destination_bytes = destination_bytes if len(destination_bytes) == ADDRESS_BYTE_SIZE \
             else b'\x00' + destination_bytes
 
         flexible_vars = dict()

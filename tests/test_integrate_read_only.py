@@ -16,12 +16,10 @@
 
 import json
 
-from iconservice.base.exception import RevertException
+from iconservice import *
 
 from tests import create_address
 from tests.test_integrate_base import TestIntegrateBase
-from iconservice import IconScoreException, ZERO_SCORE_ADDRESS
-from iconservice import *
 
 
 class TestIntegrateReadOnly(TestIntegrateBase):
@@ -30,7 +28,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         self.multisig_score_addr = self._deploy_multisig_wallet()
 
     def test_get_transaction_info(self):
-        #submit transaction
+        # submit transaction
         change_requirement_params = [
             {'name': '_required',
              'type': 'int',
@@ -76,7 +74,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getTransactionInfo",
-                "params": {"_transactionId":"1"}
+                "params": {"_transactionId": "1"}
             }
         }
         actual_transaction_data = self._query(query_request)
@@ -136,10 +134,10 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             }
         }
 
-        expected_massage = "requests that exceed the allowed amount"
+        expected_massage = "Exceed max of requests"
         try:
             actual_massage = self._query(query_request)
-        except RevertException as e:
+        except IconScoreException as e:
             actual_massage = e.message
             pass
         self.assertEqual(expected_massage, actual_massage)
@@ -261,7 +259,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                                    self._addr_array[0],
                                    ZERO_SCORE_ADDRESS,
                                    deploy_params={"_walletOwners": ','.join(owners),
-                                       "_required": "2"})
+                                                  "_required": "2"})
 
         prev_block, tx_results = self._make_and_req_block([tx1])
         self._write_precommit_state(prev_block)
@@ -278,7 +276,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 "dataType": "call",
                 "data": {
                     "method": "getWalletOwners",
-                    "params": {"_offset": f"{10*x}", "_count": "10"}
+                    "params": {"_offset": f"{10 * x}", "_count": "10"}
                 }
             }
             expected_owners = owners[10 * x: 10 + 10 * x]
@@ -346,7 +344,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {"_transactionId":"0"}
+                "params": {"_transactionId": "0"}
             }
         }
         actual_confirmation_count = self._query(query_request)
@@ -359,7 +357,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
                 continue
             confirm_tx_params = {'_transactionId': '0x00'}
             confirm_tx = self._make_score_call_tx(addr_from=Address.from_string(owner),
-                                                  addr_to= multisig_score_addr,
+                                                  addr_to=multisig_score_addr,
                                                   method='confirmTransaction',
                                                   params=confirm_tx_params
                                                   )
@@ -376,7 +374,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmations",
-                "params": {"_offset": "0", "_count": "50", "_transactionId":"0"}
+                "params": {"_offset": "0", "_count": "50", "_transactionId": "0"}
             }
         }
         expected_owners = [owner for idx, owner in enumerate(owners) if idx % 2 == 1]
@@ -393,7 +391,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
             "dataType": "call",
             "data": {
                 "method": "getConfirmationCount",
-                "params": {"_transactionId":"0"}
+                "params": {"_transactionId": "0"}
             }
         }
         actual_confirmation_count = self._query(query_request)
