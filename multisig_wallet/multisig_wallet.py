@@ -127,7 +127,7 @@ class MultiSigWallet(IconScoreBase):
         if wallet_owner not in self._wallet_owners:
             revert(f"{wallet_owner} is not an owner of wallet")
 
-    def _check_valid_transaction(self, transaction_id: int):
+    def _check_transaction_exists(self, transaction_id: int):
         if self._transactions[transaction_id] is None \
                 or self._transaction_count.get() <= transaction_id:
             revert(f"Transaction ID({transaction_id}) does not exist")
@@ -186,7 +186,7 @@ class MultiSigWallet(IconScoreBase):
     @external
     def confirmTransaction(self, _transactionId: int):
         self._check_wallet_owner(self.msg.sender)
-        self._check_valid_transaction(_transactionId)
+        self._check_transaction_exists(_transactionId)
         self._check_not_confirmed_by_owner(_transactionId, self.msg.sender)
 
         self._confirmations[_transactionId][self.msg.sender] = True
@@ -198,7 +198,7 @@ class MultiSigWallet(IconScoreBase):
     @external
     def revokeTransaction(self, _transactionId: int):
         self._check_wallet_owner(self.msg.sender)
-        self._check_valid_transaction(_transactionId)
+        self._check_transaction_exists(_transactionId)
         self._check_not_executed(_transactionId)
         self._check_confirmed_by_owner(_transactionId, self.msg.sender)
 
@@ -209,7 +209,7 @@ class MultiSigWallet(IconScoreBase):
     @external
     def cancelTransaction(self, _transactionId: int):
         self._check_wallet_owner(self.msg.sender)
-        self._check_valid_transaction(_transactionId)
+        self._check_transaction_exists(_transactionId)
         self._check_not_executed(_transactionId)
         self._check_none_of_confirmation(_transactionId)
 
@@ -323,7 +323,7 @@ class MultiSigWallet(IconScoreBase):
     @external(readonly=True)
     def getTransactionInfo(self, _transactionId: int) -> dict:
         tx_dict = {}
-        if self._transactions[_transactionId]:
+        if self._transactions[_transactionId] is not None:
             transaction = Transaction.from_bytes(self._transactions[_transactionId])
             tx_dict = transaction.to_dict()
             tx_dict["_transaction_id"] = _transactionId
@@ -331,7 +331,7 @@ class MultiSigWallet(IconScoreBase):
 
     @external(readonly=True)
     def getTransactionsExecuted(self, _transactionId: int) -> bool:
-        if self._transactions[_transactionId]:
+        if self._transactions[_transactionId] is not None:
             return bool(self._transactions[_transactionId][0])
         else:
             return False
@@ -360,7 +360,7 @@ class MultiSigWallet(IconScoreBase):
 
     @external(readonly=True)
     def getConfirmationCount(self, _transactionId: int) -> int:
-        self._check_valid_transaction(_transactionId)
+        self._check_transaction_exists(_transactionId)
 
         count = 0
         for wallet_owner in self._wallet_owners:
@@ -370,7 +370,7 @@ class MultiSigWallet(IconScoreBase):
 
     @external(readonly=True)
     def getConfirmations(self, _offset: int, _count: int, _transactionId: int) -> list:
-        self._check_valid_transaction(_transactionId)
+        self._check_transaction_exists(_transactionId)
         self._check_0_and_above(_offset, _count)
 
         confirmed_wallet_owners = []
