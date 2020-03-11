@@ -127,7 +127,7 @@ def getTransactionInfo(self, _transactionId: int) -> dict:
         "_method": "addWalletOwner",
         "_params": "[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hx1262526a4da004550021b5f9d249b9c7d98b5892\"}]",
         "_description": "add owner4 in wallet",
-        "_transaction_id": "0x0"
+        "_transactionId": "0x0"
     },
     "id": 1
 }
@@ -458,7 +458,7 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
             "_method": "addWalletOwner",
             "_params": "[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hx1262526a4da004550021b5f9d249b9c7d98b5892\"}]",
             "_description": "add owner4 in wallet",
-            "_transaction_id": "0x0"
+            "_transactionId": "0x0"
         },
         {
             "_executed": "0x0",
@@ -467,7 +467,7 @@ def getTransactionList(self, _offset: int, _count: int, _pending: bool=True, _ex
             "_method": "addWalletOwner",
             "_params": "[{\"name\":\"_walletOwner\",\"type\":\"Address\",\"value\":\"hxbedeeadea922dc7f196e22eaa763fb01aab0b64c\"}]",
             "_description": "add owner5 in wallet",
-            "_transaction_id": "0x1"
+            "_transactionId": "0x1"
         }
     ],
     "id": 1

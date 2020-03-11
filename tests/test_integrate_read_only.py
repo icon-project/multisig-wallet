@@ -16,7 +16,7 @@
 
 import json
 
-from iconservice.base.exception import RevertException
+from iconservice.base.exception import IconScoreException
 
 from tests import create_address
 from tests.test_integrate_base import TestIntegrateBase
@@ -119,7 +119,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         }
         actual_tx_list = self._query(query_request)
         for idx, actual_tx in enumerate(actual_tx_list):
-            if actual_tx["_transaction_id"] == idx:
+            if actual_tx["_transactionId"] == idx:
                 self.assertEqual(0, actual_tx["_executed"])
                 self.assertEqual(str(self.multisig_score_addr), actual_tx["_destination"])
                 self.assertEqual(f'get transaction test id:{idx}', actual_tx["_description"])
@@ -139,7 +139,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         expected_massage = "requests that exceed the allowed amount"
         try:
             actual_massage = self._query(query_request)
-        except RevertException as e:
+        except IconScoreException as e:
             actual_massage = e.message
             pass
         self.assertEqual(expected_massage, actual_massage)
@@ -172,7 +172,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_tx_list = self._query(query_request)
         idx = 1
         for actual_tx in actual_tx_list:
-            if actual_tx["_transaction_id"] == idx:
+            if actual_tx["_transactionId"] == idx:
                 self.assertEqual(0, actual_tx["_executed"])
                 self.assertEqual(str(self.multisig_score_addr), actual_tx["_destination"])
                 self.assertEqual(f'get transaction test id:{idx}', actual_tx["_description"])
@@ -192,7 +192,7 @@ class TestIntegrateReadOnly(TestIntegrateBase):
         actual_tx_list = self._query(query_request)
         idx = 0
         for actual_tx in actual_tx_list:
-            if actual_tx["_transaction_id"] == idx:
+            if actual_tx["_transactionId"] == idx:
                 self.assertEqual(1, actual_tx["_executed"])
                 self.assertEqual(str(self.multisig_score_addr), actual_tx["_destination"])
                 self.assertEqual(f'get transaction test id:{idx}', actual_tx["_description"])

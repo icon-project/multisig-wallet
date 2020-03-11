@@ -83,7 +83,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
                                             )
         prev_block, tx_results = self._make_and_req_block([valid_tx])
         self._write_precommit_state(prev_block)
-        expected_revert_massage = "type and value's actual type are not match. (32000)"
+        expected_revert_massage = "type and value's actual type are not match. (32)"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 
@@ -106,7 +106,7 @@ class TestIntegrateSubmitTransaction(TestIntegrateBase):
         prev_block, tx_results = self._make_and_req_block([valid_tx])
         self._write_precommit_state(prev_block)
         expected_revert_massage = \
-            "dict is not supported type (only int, str, bool, Address, bytes are supported) (32000)"
+            "dict is not supported type (only int, str, bool, Address, bytes are supported) (32)"
         actual_revert_massage = tx_results[0].failure.message
         self.assertEqual(expected_revert_massage, actual_revert_massage)
 

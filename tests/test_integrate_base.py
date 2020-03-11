@@ -71,7 +71,7 @@ class TestIntegrateBase(TestCase):
         config.update_conf({ConfigKey.BUILTIN_SCORE_OWNER: str(self._admin)})
         config.update_conf({ConfigKey.SERVICE: {ConfigKey.SERVICE_AUDIT: False,
                                                 ConfigKey.SERVICE_FEE: False,
-                                                ConfigKey.SERVICE_DEPLOYER_WHITELIST: False,
+                                                ConfigKey.SERVICE_DEPLOYER_WHITE_LIST: False,
                                                 ConfigKey.SERVICE_SCORE_PACKAGE_VALIDATOR: False}})
         config.update_conf({ConfigKey.SCORE_ROOT_PATH: self._score_root_path,
                             ConfigKey.STATE_DB_ROOT_PATH: self._state_db_root_path})
@@ -138,7 +138,7 @@ class TestIntegrateBase(TestCase):
             block,
             [tx]
         )
-        self.icon_service_engine.commit(block)
+        self.icon_service_engine.commit(block.height, block.hash, None)
         self._block_height += 1
         self._prev_block_hash = block_hash
 
@@ -400,12 +400,12 @@ class TestIntegrateBase(TestCase):
         return block, invoke_response
 
     def _write_precommit_state(self, block: 'Block') -> None:
-        self.icon_service_engine.commit(block)
+        self.icon_service_engine.commit(block.height, block.hash, None)
         self._block_height += 1
         self._prev_block_hash = block.hash
 
     def _remove_precommit_state(self, block: 'Block') -> None:
-        self.icon_service_engine.rollback(block)
+        self.icon_service_engine.rollback(block.height, block.hash)
 
     def _query(self, request: dict, method: str = 'icx_call') -> Any:
         response = self.icon_service_engine.query(method, request)
