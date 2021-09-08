@@ -101,10 +101,10 @@ class MultiSigWallet(IconScoreBase):
                 params = json_loads(json_formatted_params)
                 for param in params:
                     params_type_converter(param["type"], param["value"])
-            except ValueError as e:
-                revert(f"json format error: {e}")
+            except ValueError:
+                revert("json decode error")
             except IconScoreException as e:
-                revert(f"{e}")
+                raise e
             except:
                 revert("can not convert 'params' json data, check the 'params' parameter")
 
